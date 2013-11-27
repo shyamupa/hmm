@@ -8,26 +8,28 @@ import java.util.Map;
 public class HMM {
 	public int numStates;
 	public int vocabSize;
-	public List<Double>init;
+	public List<Double>init;	
 	public Map<Integer,Map<Integer,Double>>tr;
 	public Map<Integer,Map<Integer,Double>>em;
+	private Lexicon lex;
 
 	public HMM(int numStates, int vocabSize, List<Double>init, Map<Integer,Map<Integer,Double>>tr,
-			Map<Integer,Map<Integer,Double>>em) {
+			Map<Integer,Map<Integer,Double>>em, Lexicon lex) {
 		this.numStates = numStates;	// for eg. # of possible POS tags
 		this.vocabSize = vocabSize;	// possible words in the vocabulary
-		this.init = init;
+		this.init = init;	// init probabilities
 		this.tr = tr;
 		this.em = em;
+		this.lex=lex;
 	}
-	public List<String> Viterbi(List<String> obvs)
+	public List<String> Viterbi(List<String> observs)
 	{
-		
-//		HashMap<String, HashMap<String,Double>> dp = new HashMap<String, HashMap<String,Double>>();
-		Double[][] dp= new Double[numStates][vocabSize];
+		Integer[] obvsId=observToIds(observs);
+		HashMap<Integer, HashMap<Integer,Double>> dp = new HashMap<Integer, HashMap<Integer,Double>>();
+//		Double[][] dp= new Double[numStates][vocabSize];
 		// stores max probability of being in state s and seeing observation obv
 		
-		HashMap<String,HashMap<String,String>> backPointers= new HashMap<String,HashMap<String,String>>();
+		HashMap<Integer,HashMap<Integer,Integer>> backPointers= new HashMap<Integer,HashMap<Integer,Integer>>();
 		// currentState -> currentObsv -> previousState
 		
 		for(int i=0;i<numStates;i++)
@@ -35,13 +37,13 @@ public class HMM {
 			dp[i][0]=; // initialize
 			backPointers.put(state,new HashMap<String,String>());
 			
-			dp.get(state).put(obvs.get(0), init_state.get(state)*getEm(state,obvs.get(0)));
-			backPointers.get(state).put(obvs.get(0),null);
+			dp.get(state).put(observs.get(0), init_state.get(state)*getEm(state,observs.get(0)));
+			backPointers.get(state).put(observs.get(0),null);
 		}
 		
 		Double val,maxval;
 		String argmax=null;
-		for(int i=1;i<obvs.size();i++)
+		for(int i=1;i<observs.size();i++)
 		{
 			maxval=Double.NEGATIVE_INFINITY;
 			argmax=null;
@@ -49,15 +51,15 @@ public class HMM {
 			{
 				for(String state_sprime: states)
 				{
-					val=dp.get(state_sprime).get(obvs.get(i-1))*getTr(state_sprime,state_s)*getEm(state_s, obvs.get(i));
+					val=dp.get(state_sprime).get(observs.get(i-1))*getTr(state_sprime,state_s)*getEm(state_s, observs.get(i));
 					if(maxval < val)
 					{
 						maxval=val;
 						argmax=state_sprime;
 					}
 				}
-				backPointers.get(state_s).put(obvs.get(i),argmax);
-				dp.get(state_s).put(obvs.get(i),maxval);	//
+				backPointers.get(state_s).put(observs.get(i),argmax);
+				dp.get(state_s).put(observs.get(i),maxval);	//
 			}
 		}
 //		maxval=Double.NEGATIVE_INFINITY;
@@ -69,12 +71,18 @@ public class HMM {
 		assert (argmax!=null) :  "bad end state";
 		List<String> mostProbableStates = new ArrayList<String>();
 		String current_state=argmax;
-		for(int i=obvs.size()-1;i>=0;i--)
+		for(int i=observs.size()-1;i>=0;i--)
 		{
 			mostProbableStates.add(current_state);
-			current_state=backPointers.get(current_state).get(obvs.get(i));
+			current_state=backPointers.get(current_state).get(observs.get(i));
 		}
 		return mostProbableStates;
 		
+	}
+	private Integer[] observToIds(List<String> observs) {
+		List<Integer>ids=new ArrayList<Integer>();
+		for(String s: observs)
+			ids.add(lex.getId(s));
+		return ids.toArray(new Integer[ids.size()]);
 	}
 }
