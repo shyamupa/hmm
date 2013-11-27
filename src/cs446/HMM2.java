@@ -10,14 +10,14 @@ public class HMM2 {
 	private Double[][] em; // StateId -> ObsrvId -> Prob
 	private Double[] init_state;	// initial probabalities
 	private int numStates;
-	
+	private Lexicon lexicon;
 	public HMM2(){
 		
 	}
-	// calculates the 
+	
 	public void ForwardBackwardAlgorithm(List<String> observs){
 		computeForward(observs);
-		computeBackward(observs);
+		//computeBackward(observs);
 	}
 		
 	private void computeBackward() {
@@ -111,7 +111,7 @@ public class HMM2 {
 	{
 		int[] obvsId=new int[observs.size()];	// map obvs to their ids
 		for(int i=0;i<observs.size();i++)
-			obvsId[i]=getId(observs.get(i));
+			obvsId[i]=lexicon.getId(observs.get(i));
 		return obvsId;
 	}
 }

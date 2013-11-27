@@ -3,18 +3,19 @@ package cs446;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HMM {
 	public int numStates;
 	public int vocabSize;
-	public Double[][] init;
-	public Double[][] tr;
-	public Double[][] em;
+	public List<Double>init;
+	public Map<Integer,Map<Integer,Double>>tr;
+	public Map<Integer,Map<Integer,Double>>em;
 
-	public HMM(int numStates, int vocabSize, Double[][] init, Double[][] tr,
-			Double[][] em) {
-		this.numStates = numStates;
-		this.vocabSize = vocabSize;
+	public HMM(int numStates, int vocabSize, List<Double>init, Map<Integer,Map<Integer,Double>>tr,
+			Map<Integer,Map<Integer,Double>>em) {
+		this.numStates = numStates;	// for eg. # of possible POS tags
+		this.vocabSize = vocabSize;	// possible words in the vocabulary
 		this.init = init;
 		this.tr = tr;
 		this.em = em;
