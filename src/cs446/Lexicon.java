@@ -6,13 +6,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Lexicon {
 	
-	Map<String,Integer>map;
-	Map<String,List<String>>possible_tags;
+	Map<String,Integer>map;	
+	Map<String,List<String>>possible_tags;	// list of possible tags for a given string
 	public Lexicon(String doc) throws IOException
 	{
 		BufferedReader br = new BufferedReader(new FileReader(doc));
@@ -39,14 +41,18 @@ public class Lexicon {
 //			System.out.println();
 //		}
 	}
-	public int getVocabSize(){
-		return map.size();
+	
+	public int getVocabSize()
+	{
+		return map.size();	// all possible words (read observed states)
 	}
-	public int getId(String string) {
-		return map.get(string);
+	public int getId(String string) 
+	{
+		return map.get(string);	
 	}
-	public List<String> getPossibleTags(String string){
-		return possible_tags.get(string);
+	public List<String> getPossibleTags(String string)
+	{
+		return possible_tags.get(string);	// get possible tags for a given word(read possible hidden state for a given observed word)
 	}
 	public static void main(String args[]) throws IOException
 	{

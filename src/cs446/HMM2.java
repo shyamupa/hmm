@@ -25,8 +25,8 @@ public class HMM2 {
 	}
 	private Double[][] computeForward(List<String> observs) {
 		int[] obvsId=observToIds(observs);
+		
 		Double[][] fwd=new Double[numStates][observs.size()];
-		// pr of being in state s and having seen upto i obvs
 		Double Z=Double.NaN; // partition function
 		
 		for(int i=0;i<numStates;i++)
@@ -63,6 +63,7 @@ public class HMM2 {
 	public List<String> Viterbi(List<String> observs)
 	{
 		int[] obvsId=observToIds(observs);
+		
 		Double[][] dp=new Double[numStates][observs.size()];
 		// stores max probability of being in state s and seeing observation with id obv
 		int[][] bp= new int[numStates][observs.size()];
@@ -70,34 +71,35 @@ public class HMM2 {
 		
 		for(int i=0;i<numStates;i++)
 		{
-			dp[i][0]=Math.log(init_state[i])+Math.log(em[i][obvsId[0]]);
+			dp[i][0]=-Math.log(init_state[i])-Math.log(em[i][obvsId[0]]);
 		}
 		
-		Double val,maxval;
-		int argmax=-1;
+		Double val,minval;
+		int argmin;
 		
 		for(int i=1;i<observs.size();i++)
 		{
-			maxval=Double.NEGATIVE_INFINITY;
 			for(int j=0;j<numStates;j++)
 			{
-				for(int k=0;j<numStates;k++)
+				minval=dp[0][i-1]-Math.log(tr[0][j]);
+				argmin=0;		
+				for(int k=1;j<numStates;k++)
 				{
 					val= dp[k][i-1]+Math.log(tr[j][k]);
-					if(maxval < val)
+					if(minval < val)
 					{
-						maxval=val;
-						argmax=j;
+						minval=val;
+						argmin=j;
 					}
 				}
-				dp[j][i]=maxval;
-				bp[j][i]=argmax;
+				dp[j][i]=minval;
+				bp[j][i]=argmin;
 			}
 			}
-		assert (argmax!=-1) :  "bad end state";
+		assert (argmin!=-1) :  "bad end state";
 		
 		int[] answerIds= new int[observs.size()];
-		answerIds[observs.size()-1]=argmax;
+		answerIds[observs.size()-1]=argmin;
 		int prev;
 		for(int i=observs.size()-2;i>=0;i--)
 		{
