@@ -19,19 +19,29 @@ public class HMM2 {
 		computeForward(observs);
 		//computeBackward(observs);
 	}
-		
-	private void computeBackward() {
-		
+	private void computeGamma(List<String> observs){
+		Double[][] fwd = computeForward(observs);
+		Double[][] bwd = computeBackward(observs);
+		Double Z=0.0;
+		for (int i = 0; i < bwd.length; i++) {
+			gamma[][]=
+		}
+	}
+	private Double[][] computeBackward(List<String> observs) {
+		int[] obvsId=observToIds(observs);
+		Double[][] bwd=new Double[numStates][observs.size()];
+		Double Z=Double.NaN; // partition function
+		return bwd;
 	}
 	private Double[][] computeForward(List<String> observs) {
 		int[] obvsId=observToIds(observs);
 		
 		Double[][] fwd=new Double[numStates][observs.size()];
-		Double Z=Double.NaN; // partition function
+		Double Z=0.0; // partition function
 		
 		for(int i=0;i<numStates;i++)
 		{
-			fwd[i][0]=init_state[i]*em[i][obvsId[0]];
+			fwd[i][0]=Math.log(init_state[i])+Math.log(em[i][obvsId[0]]);
 			Z+=fwd[i][0];
 		}
 		assert Z!=0.0;
