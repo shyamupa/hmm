@@ -11,64 +11,79 @@ public class HMM2 {
 	private Double[] init_state;	// initial probabalities
 	private int numStates;
 	private Lexicon lexicon;
-	public HMM2(){
+	public HMM2()
+	{
 		
 	}
 	
-	public void ForwardBackwardAlgorithm(List<String> observs){
-		computeForward(observs);
-		//computeBackward(observs);
+	public void ForwardBackwardAlgorithm(List<String> observs)
+	{
+
 	}
-	private void computeGamma(List<String> observs){
-		Double[][] fwd = computeForward(observs);
-		Double[][] bwd = computeBackward(observs);
-		Double Z=0.0;
-		for (int i = 0; i < bwd.length; i++) {
-			gamma[][]=
-		}
-	}
-	private Double[][] computeBackward(List<String> observs) {
-		int[] obvsId=observToIds(observs);
-		Double[][] bwd=new Double[numStates][observs.size()];
-		Double Z=Double.NaN; // partition function
-		return bwd;
-	}
-	private Double[][] computeForward(List<String> observs) {
+
+	private List<Double[][]> computeForwardAndBackward(List<String> observs) 
+	{
 		int[] obvsId=observToIds(observs);
 		
 		Double[][] fwd=new Double[numStates][observs.size()];
-		Double Z=0.0; // partition function
+		Double[][] bwd=new Double[numStates][observs.size()];
+		Double[] Z= new Double[observs.size()];
+		Z[0]=0.0;
+		for(int i=0;i<numStates;i++)
+		{
+			fwd[i][0]=init_state[i]*em[i][obvsId[0]];
+			Z[0]+=fwd[i][0];
+		}
+		assert Z[0]!=0.0;
 		
 		for(int i=0;i<numStates;i++)
 		{
-			fwd[i][0]=Math.log(init_state[i])+Math.log(em[i][obvsId[0]]);
-			Z+=fwd[i][0];
-		}
-		assert Z!=0.0;
-		for(int i=0;i<numStates;i++)
-		{
-			fwd[i][0]/=Z;
+			fwd[i][0]/=Z[0];
 		}
 		
-		for(int i=1;i<obvsId.length;i++)
+		for(int t=1;t<obvsId.length;t++)
 		{
-			Z=0.0;
+			Z[t]=0.0;
 			for(int s=0;s<numStates;s++)
 			{
 				Double val=0.0;
-				for(int t=0;t<numStates;t++)
-					val+=fwd[t][i-1]*tr[t][s];
-				val*=em[s][obvsId[i]];
-				fwd[s][i]=val;
-				Z+=fwd[s][i];
+				for(int j=0;j<numStates;j++)
+				{
+					val+=fwd[j][t-1]*tr[j][s];
+				}
+				val*=em[s][obvsId[t]];
+				fwd[s][t]=val;
+				Z[t]+=fwd[s][t];
 			}
-			assert Z!=0.0;
+			assert Z[t]!=0.0;
 			for(int s=0;s<numStates;s++)
 			{
-				fwd[s][i]/=Z;
+				fwd[s][t]/=Z[t];
 			}
 		}
-		return fwd;
+		// Z[t] computed for all time t !!
+		
+		for(int i=0;i<numStates;i++)
+		{
+			bwd[i][observs.size()-1]=1/Z[observs.size()-1];
+		}
+		
+		for(int t=observs.size()-2;t>=0;t--)
+		{
+			for(int s=0;s<numStates;s++)
+			{
+				Double val = 0.0;
+				for(int j=0;j<numStates;j++)
+				{
+					val+=bwd[j][t+1]*tr[j][s]*em[j][obvsId[t+1]];
+				}
+				bwd[s][t]=val/Z[t];
+			}
+		}
+		List<Double[][]> ls=new ArrayList<Double[][]>();
+		ls.add(fwd);
+		ls.add(bwd);
+		return ls;
 	}
 	public List<String> Viterbi(List<String> observs)
 	{
@@ -81,35 +96,35 @@ public class HMM2 {
 		
 		for(int i=0;i<numStates;i++)
 		{
-			dp[i][0]=-Math.log(init_state[i])-Math.log(em[i][obvsId[0]]);
+			dp[i][0]=-Math.log(init_state[i])-Math.log(em[i][obvsId[0]]);	// init in i and emitting the first observation
 		}
 		
-		Double val,minval;
-		int argmin;
+		Double val,max;
+		int argmax=-1;
 		
-		for(int i=1;i<observs.size();i++)
+		for(int t=1;t<observs.size();t++)
 		{
-			for(int j=0;j<numStates;j++)
+			for(int i=0;i<numStates;i++)
 			{
-				minval=dp[0][i-1]-Math.log(tr[0][j]);
-				argmin=0;		
-				for(int k=1;j<numStates;k++)
+				max=dp[0][t-1]-Math.log(tr[0][i])-Math.log(em[i][obvsId[t]]);	
+				argmax=0;		
+				for(int j=1;i<numStates;j++)
 				{
-					val= dp[k][i-1]+Math.log(tr[j][k]);
-					if(minval < val)
+					val= dp[j][t-1]-Math.log(tr[i][j])-Math.log(em[i][t]);
+					if(max < val)
 					{
-						minval=val;
-						argmin=j;
+						max=val;
+						argmax=j;
 					}
 				}
-				dp[j][i]=minval;
-				bp[j][i]=argmin;
+				dp[i][t]=max;
+				bp[i][t]=argmax;
 			}
 			}
-		assert (argmin!=-1) :  "bad end state";
+		assert (argmax!=-1) :  "bad end state";
 		
 		int[] answerIds= new int[observs.size()];
-		answerIds[observs.size()-1]=argmin;
+		answerIds[observs.size()-1]=argmax;
 		int prev;
 		for(int i=observs.size()-2;i>=0;i--)
 		{

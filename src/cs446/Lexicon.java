@@ -58,5 +58,6 @@ public class Lexicon {
 	{
 		Lexicon lex = new Lexicon("data/HW6.lexicon.txt");
 		int vocabSize = lex.getVocabSize();
+		System.out.println(vocabSize);
 	}
 }
