@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,19 +36,46 @@ public class GetParameters {
 			parts=line.split(" ");
 			for (int j = 0; j < parts.length; j++) 
 			{
-//				System.out.println(parts[j]);
+//				System.out.print(parts[j]+" ");
 				safePutMap(EMtable, parts[j]);
 				
 				pos=parts[j].split("_")[1];
 				safePutMap(POStable, pos);
 				
 			}
+//			System.out.println();
 		}
-		for(String tagged_word:EMtable.keySet())
-			System.out.println(tagged_word);
-		for(String p:POStable.keySet())
-			System.out.println(p+"::"+POStable.get(p));
+		for(String s: POStable.keySet())
+		{
+			TRtable.put(s, new HashMap<String,Double>());
+			for(String t:POStable.keySet())
+				TRtable.get(s).put(t, 0.0);
+		}
+		
+		String text = new Scanner( new File(trainfile) ).useDelimiter("\\A").next();
+		text = text.replace("\n", "").replace("\r", "");
+		String[]tokens= text.split(" ");
+		String pos1,pos2;
+		for(int i=1;i<tokens.length;i++)
+		{
+			pos1=tokens[i-1].split("_")[1];
+			pos2=tokens[i].split("_")[1];
+			System.out.println(pos1+":"+pos2);
+			TRtable.get(pos1).put(pos2, TRtable.get(pos1).get(pos2)+1.0);
+		}
+
+//		for(String s: POStable.keySet())
+//		{
+//			for(String t:POStable.keySet())
+//				System.out.println(TRtable.get(s).get(t));
+//				
+//		}
+//		for(String tagged_word:EMtable.keySet())
+//			System.out.println(tagged_word);
+//		for(String p:POStable.keySet())
+//			System.out.println(p+"::"+POStable.get(p));
 	}
+
 	public void safePutMap(Map<String,Double>table, String s)
 	{
 		if(table.containsKey(s)){
