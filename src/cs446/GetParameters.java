@@ -19,11 +19,26 @@ public class GetParameters {
 	private Map<String,Double>EMtable;
 	private Map<String, Double> POStable;
 	private Map<String, Map<String,Double>> TRtable;
+	private HashMap<String, Integer> index;
 	public GetParameters(String doc){
 		this.trainfile=doc;
 		this.EMtable=new HashMap<String,Double>();	// emisson prob
 		this.POStable=new HashMap<String,Double>();	// init prob
+		this.index=new HashMap<String,Integer>();	// init prob
 		this.TRtable=new HashMap<String,Map<String,Double>>();	
+	}
+	public Double[][] getTr()
+	{
+		Double[][] tr= new Double[POStable.size()][POStable.size()];
+		for(String s1:TRtable.keySet())
+			for(String s2:TRtable.get(s1).keySet())
+				tr[index.get(s1)][index.get(s2)]=TRtable.get(s1).get(s2);
+		return tr;
+				
+	}
+	public Double[][] getEm()
+	{
+		return null;
 	}
 	public Double[] getInit(){
 		Double[] init=new Double[POStable.size()];
@@ -42,6 +57,7 @@ public class GetParameters {
 		for(String s:POStable.keySet())
 		{	
 			System.out.println(s+"=="+init[i++]);
+			index.put(s, i);
 		}
 		
 		return init;
