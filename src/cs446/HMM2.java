@@ -11,11 +11,17 @@ public class HMM2 {
 	private Double[] init_state;	// initial probabalities
 	private int numStates;
 	private Lexicon lexicon;
-	public HMM2()
-	{
-		
-	}
 	
+	
+	public HMM2(Double[][] tr, Double[][] em, Double[] init_state,
+			int numStates, Lexicon lexicon) {
+		this.tr = tr;
+		this.em = em;
+		this.init_state = init_state;
+		this.numStates = numStates;
+		this.lexicon = lexicon;
+	}
+
 	public void ForwardBackwardAlgorithm(List<String> observs)
 	{
 

@@ -25,6 +25,27 @@ public class GetParameters {
 		this.POStable=new HashMap<String,Double>();	// init prob
 		this.TRtable=new HashMap<String,Map<String,Double>>();	
 	}
+	public Double[] getInit(){
+		Double[] init=new Double[POStable.size()];
+		Double sum=0.0;
+		for(Double d:POStable.values())
+		{
+			sum+=d;
+		}
+		int i=0;
+		for(String s:POStable.keySet())
+		{	
+//			System.out.println(s+":"+POStable.get(s)+":"+sum+"=="+POStable.get(s)/sum);
+			init[i++]=POStable.get(s)/sum;
+		}
+		i=0;
+		for(String s:POStable.keySet())
+		{	
+			System.out.println(s+"=="+init[i++]);
+		}
+		
+		return init;
+	}
 	public void LearnFromLabeledData() throws IOException{
 		BufferedReader br = new BufferedReader(new FileReader(trainfile));
 		String line;
@@ -60,7 +81,7 @@ public class GetParameters {
 		{
 			pos1=tokens[i-1].split("_")[1];
 			pos2=tokens[i].split("_")[1];
-			System.out.println(pos1+":"+pos2);
+//			System.out.println(pos1+":"+pos2);
 			TRtable.get(pos1).put(pos2, TRtable.get(pos1).get(pos2)+1.0);
 		}
 
@@ -90,5 +111,6 @@ public class GetParameters {
 	public static void main(String[] args) throws IOException {
 		GetParameters gp=new GetParameters("data/HW6.gold.txt");
 		gp.LearnFromLabeledData();
+		gp.getInit();
 	}
 }
