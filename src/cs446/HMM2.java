@@ -22,11 +22,6 @@ public class HMM2 {
 		this.lexicon = lexicon;
 	}
 
-	public void ForwardBackwardAlgorithm(List<String> observs)
-	{
-
-	}
-
 	private List<Double[][]> computeForwardAndBackward(List<String> observs) 
 	{
 		int[] obvsId=observToIds(observs);
@@ -103,40 +98,53 @@ public class HMM2 {
 		for(int i=0;i<numStates;i++)
 		{
 			dp[i][0]=-Math.log(init_state[i])-Math.log(em[i][obvsId[0]]);	// init in i and emitting the first observation
+//			System.out.println(dp[i][0]);
 		}
 		
-		Double val,max;
-		int argmax=-1;
+		Double val,min;
+		int argmin=-1;
 		
 		for(int t=1;t<observs.size();t++)
 		{
 			for(int i=0;i<numStates;i++)
 			{
-				max=dp[0][t-1]-Math.log(tr[0][i])-Math.log(em[i][obvsId[t]]);	
-				argmax=0;		
-				for(int j=1;i<numStates;j++)
+				min=dp[0][t-1]-Math.log(tr[0][i])-Math.log(em[i][obvsId[t]]);	
+				argmin=0;		
+				for(int j=1;j<numStates;j++)
 				{
-					val= dp[j][t-1]-Math.log(tr[i][j])-Math.log(em[i][t]);
-					if(max < val)
+//					System.out.println(dp[j][t-1]);
+					val= dp[j][t-1]-Math.log(tr[j][i])-Math.log(em[i][obvsId[t]]);
+//					System.out.println(val+"and"+min);
+					if(min > val)
 					{
-						max=val;
-						argmax=j;
+						min=val;
+						argmin=j;
 					}
 				}
-				dp[i][t]=max;
-				bp[i][t]=argmax;
+//				System.out.println("min should not be infinity! "+min+"argmin is "+argmin);
+				dp[i][t]=min;
+				bp[i][t]=argmin;
 			}
-			}
-		assert (argmax!=-1) :  "bad end state";
+		}
+		for(int t=1;t<observs.size();t++)
+		{
+			for(int i=0;i<numStates;i++)
+				System.out.print(dp[i][t]+" ");
+			System.out.println();
+		}
+		assert (argmin!=-1) :  "bad end state";
 		
 		int[] answerIds= new int[observs.size()];
-		answerIds[observs.size()-1]=argmax;
+		answerIds[observs.size()-1]=argmin;
 		int prev;
 		for(int i=observs.size()-2;i>=0;i--)
 		{
 			prev=answerIds[i+1];
 			answerIds[i]=bp[prev][i+1];
 		}
+		for(int i=0;i<answerIds.length;i++)
+			System.out.println(answerIds[i]);
+		System.out.println("Finished!");
 		return null;
 		
 	}
