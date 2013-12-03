@@ -9,26 +9,37 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 public class Lexicon {
 	
-	Map<String,Integer>map;	
-	Map<String,List<String>>possible_tags;	// list of possible tags for a given string
+	public Map<String,Integer>word_to_id;	// int ids for each observation
+	public Map<String,List<String>>possible_tags_for_word;	// list of possible tags for a given string
+	public Map<String,Integer>tags_to_id;
 	public Lexicon(String doc) throws IOException
 	{
 		BufferedReader br = new BufferedReader(new FileReader(doc));
 		String line;
 		int c=0;
-		map = new HashMap<String, Integer>();	// word (observation)
-		possible_tags= new HashMap<String,List<String>>();
+		word_to_id = new HashMap<String, Integer>();	// word (observation)
+		possible_tags_for_word= new HashMap<String,List<String>>();
+		tags_to_id= new HashMap<String,Integer>();
 		while((line=br.readLine())!=null)
 		{
 			String[] parts=line.split(" ");
 			
-			map.put(parts[0], c++);
-			possible_tags.put(parts[0],Arrays.asList(Arrays.copyOfRange(parts,1,parts.length)));
+			word_to_id.put(parts[0], c++);
+			possible_tags_for_word.put(parts[0],Arrays.asList(Arrays.copyOfRange(parts,1,parts.length)));
+			for(int i=1;i<parts.length;i++)
+			{
+				if(!tags_to_id.containsKey(parts[i]))
+					tags_to_id.put(parts[i], tags_to_id.size());
+			}
 		}
+		for(Entry<String, Integer> e: tags_to_id.entrySet())
+			System.out.println(e.getKey()+"="+e.getValue());
+
 //		for(Map.Entry<String, Integer> e: map.entrySet())
 //			System.out.println(e.getKey()+"::"+e.getValue());
 //		for(Map.Entry<String, List<String>> e: possible_tags.entrySet())
@@ -41,23 +52,74 @@ public class Lexicon {
 //			System.out.println();
 //		}
 	}
-	
+//	public Double[] getInitFromLex()	// starting point for EM
+//	{
+//		for(String word:possible_tags.keySet())
+//			for()
+//			
+//	}
+//	public Double[][] getTrFromLex()	// starting point for EM
+//	{
+//		Double[][] tr= new Double[][]
+//	}
+	public Double[][] getEmFromLex()	// starting point for EM
+	{
+		Double[][] em= new Double[tags_to_id.size()][getVocabSize()];
+		for(String s:possible_tags_for_word.keySet())
+		{
+			for(String pos: possible_tags_for_word.get(s))
+			{
+				em[getTagId(pos)][word_to_id.get(s)]=1.0/(possible_tags_for_word.get(s).size());
+		
+			}
+		}
+//		for(int i=0;i<tags_index.size();i++)
+//		{
+//			for(int j=0;j<getVocabSize();j++)
+//			{
+////				if(em[i][j]==null)
+////					em[i][j]=0.0;
+//				System.out.print(em[i][j]+" ");
+//			}
+//			System.out.println();
+//		}
+		for(int j=0;j<getVocabSize();j++)
+		{
+			double sum=0.0;
+			for(int i=0;i<tags_to_id.size();i++)
+			{
+				if(em[i][j]==null)
+					em[i][j]=0.0;
+				System.out.print(em[i][j]+" ");
+				sum+=em[i][j];
+			}
+			System.out.print("SUM "+sum);
+			assert sum==1.0;
+			System.out.println();
+		}
+		return em;
+	}
 	public int getVocabSize()
 	{
-		return map.size();	// all possible words (read observed states)
+		return word_to_id.size();	// all possible words (read observed states)
 	}
-	public int getObservId(String string) 
+	public int getObservId(String word) 
 	{
-		return map.get(string);	
+		return word_to_id.get(word);	
+	}
+	public int getTagId(String tag)
+	{
+		return tags_to_id.get(tag);
 	}
 	public List<String> getPossibleTags(String string)
 	{
-		return possible_tags.get(string);	// get possible tags for a given word(read possible hidden state for a given observed word)
+		return possible_tags_for_word.get(string);	// get possible tags for a given word(read possible hidden state for a given observed word)
 	}
 	public static void main(String args[]) throws IOException
 	{
 		Lexicon lex = new Lexicon("data/HW6.lexicon.txt");
 		int vocabSize = lex.getVocabSize();
 		System.out.println(vocabSize);
+		lex.getEmFromLex();
 	}
 }

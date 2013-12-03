@@ -30,6 +30,7 @@ public class GetParameters {
 		this.TRtable=new HashMap<String,Map<String,Double>>();	
 		this.lex=lex;
 	}
+	
 	public Double[][] getTr()
 	{
 		Double[][] tr= new Double[POStable.size()][POStable.size()];
