@@ -56,31 +56,39 @@ public class GetParameters {
 	{
 		Double[][] em= new Double[POStable.size()][lex.getVocabSize()];
 		Double Z=0.0;
-		for(String s1:EMtable.keySet())
+//		for(String s1:EMtable.keySet())	// POS
+//		{
+//			for(String s2:EMtable.get(s1).keySet())	// word(observation)
+//			{
+//				System.out.println("S1"+s1+" S2 "+s2+EMtable.get(s1).get(s2));
+//			}
+//		}
+		for(String s1:EMtable.keySet())	// POS
 		{
 			Z=0.0;
 			for(Double val: EMtable.get(s1).values())
 				Z+=val;
-			for(String s2:EMtable.get(s1).keySet())
+			for(String s2:EMtable.get(s1).keySet())	// word(observation)
 			{
 				//System.out.println(lex.getId(s2)+";;"+s1+index.get(s1));
 				em[index.get(s1)][lex.getId(s2)]=EMtable.get(s1).get(s2)/(Z);
+//				System.out.println();
 			}
 		}
 		for(int i=0;i<POStable.size();i++)
+		{
+			Double sum=0.0;
+			for(int j=0;j<lex.getVocabSize();j++)
 			{
-				Double sum=0.0;
-				for(int j=0;j<lex.getVocabSize();j++)
-				{
-					if(em[i][j]==null)
-						em[i][j]=0.0;
-//						System.out.println(Math.log(0.0));
-//					System.out.print(em[i][j]);
-					sum+=em[i][j];
-				}
-				assert sum==1.0;
-//				System.out.println();
+				if(em[i][j]==null)
+					em[i][j]=0.0;
+//					System.out.println(Math.log(0.0));
+//				System.out.print(em[i][j]);
+				sum+=em[i][j];
 			}
+			assert sum==1.0;
+//			System.out.println();
+		}
 		return em;
 	}
 	public Double[] getInit(){
@@ -124,7 +132,7 @@ public class GetParameters {
 					if(EMtable.get(pos).containsKey(word))
 						EMtable.get(pos).put(word,EMtable.get(pos).get(word)+1.0);
 					else
-						EMtable.get(pos).put(word,0.0);
+						EMtable.get(pos).put(word,1.0);
 						
 				}
 			}

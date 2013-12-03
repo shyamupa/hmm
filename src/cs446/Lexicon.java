@@ -20,7 +20,7 @@ public class Lexicon {
 		BufferedReader br = new BufferedReader(new FileReader(doc));
 		String line;
 		int c=0;
-		map = new HashMap<String, Integer>();
+		map = new HashMap<String, Integer>();	// word (observation)
 		possible_tags= new HashMap<String,List<String>>();
 		while((line=br.readLine())!=null)
 		{

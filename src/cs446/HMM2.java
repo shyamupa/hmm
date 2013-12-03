@@ -114,24 +114,31 @@ public class HMM2 {
 				{
 //					System.out.println(dp[j][t-1]);
 					val= dp[j][t-1]-Math.log(tr[j][i])-Math.log(em[i][obvsId[t]]);
-//					System.out.println(val+"and"+min);
 					if(min > val)
 					{
 						min=val;
 						argmin=j;
 					}
+					System.out.println("STATE"+j+val+"and"+min);
+					if(min == Double.POSITIVE_INFINITY)
+					{
+						System.out.println("OH NO!!");
+//						System.exit(-1);
+					}
 				}
-//				System.out.println("min should not be infinity! "+min+"argmin is "+argmin);
+				System.out.print("min should not be infinity! "+min+"argmin is "+argmin);
 				dp[i][t]=min;
 				bp[i][t]=argmin;
 			}
-		}
-		for(int t=1;t<observs.size();t++)
-		{
-			for(int i=0;i<numStates;i++)
-				System.out.print(dp[i][t]+" ");
 			System.out.println();
 		}
+		// print
+//		for(int t=0;t<observs.size();t++)
+//		{
+//			for(int i=0;i<numStates;i++)
+//				System.out.print(dp[i][t]+" ");
+//			System.out.println();
+//		}
 		assert (argmin!=-1) :  "bad end state";
 		
 		int[] answerIds= new int[observs.size()];
