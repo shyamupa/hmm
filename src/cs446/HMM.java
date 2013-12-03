@@ -81,7 +81,7 @@ public class HMM {
 	private Integer[] observToIds(List<String> observs) {
 		List<Integer>ids=new ArrayList<Integer>();
 		for(String s: observs)
-			ids.add(lex.getId(s));
+			ids.add(lex.getObservId(s));
 		return ids.toArray(new Integer[ids.size()]);
 	}
 }

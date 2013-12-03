@@ -46,7 +46,7 @@ public class Lexicon {
 	{
 		return map.size();	// all possible words (read observed states)
 	}
-	public int getId(String string) 
+	public int getObservId(String string) 
 	{
 		return map.get(string);	
 	}

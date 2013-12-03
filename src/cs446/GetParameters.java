@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.Map.Entry;
 
 public class GetParameters {
 	private String trainfile;
@@ -71,7 +72,7 @@ public class GetParameters {
 			for(String s2:EMtable.get(s1).keySet())	// word(observation)
 			{
 				//System.out.println(lex.getId(s2)+";;"+s1+index.get(s1));
-				em[index.get(s1)][lex.getId(s2)]=EMtable.get(s1).get(s2)/(Z);
+				em[index.get(s1)][lex.getObservId(s2)]=EMtable.get(s1).get(s2)/(Z);
 //				System.out.println();
 			}
 		}
@@ -147,7 +148,7 @@ public class GetParameters {
 		int p=0;
 		for(String s:POStable.keySet())
 		{	
-			System.out.println("POS="+p+s);
+//			System.out.println("POS="+p+" at "+s);
 			index.put(s, p++);
 		}
 		System.out.println(index.size());
@@ -185,9 +186,25 @@ public class GetParameters {
 			table.put(s, 1.0);
 		}
 	}
+	
 	public int getNumTags()
 	{
 		return index.size();
+	}
+	public String getTagFromId(int id)
+	{
+//		for(Entry<String, Integer> e: index.entrySet())
+//			System.out.println(e.getKey()+"="+e.getValue());
+		for(String pos:index.keySet())
+		{
+//			System.out.println(pos);
+			if(index.get(pos)==id)
+		
+				return pos;
+			else
+				continue;
+		}
+		return null;
 	}
 	public static void main(String[] args) throws IOException {
 		GetParameters gp=new GetParameters("data/HW6.gold.txt",new Lexicon("data/HW6.lexicon.txt"));
@@ -200,12 +217,18 @@ public class GetParameters {
 		BufferedReader br = new BufferedReader(new FileReader("data/HW6.train.txt"));
 		while((line=br.readLine())!=null)
 		{
-			System.out.println(line);
-			break;
+//			System.out.println(line);
+		
+//		for(int i=0;i<line.split(" ").length;i++)
+//			System.out.println(line.split(" ")[i]);
+//		System.out.println("-----");
+			List<Integer> ans = hmm.Viterbi(Arrays.asList(line.split(" ")));
+			for(int a: ans)
+			{
+	//			System.out.println(a);
+				System.out.print(gp.getTagFromId(a)+" ");
+			}
+			System.out.println();
 		}
-		for(int i=0;i<line.split(" ").length;i++)
-			System.out.println(line.split(" ")[i]);
-		System.out.println("-----");
-		hmm.Viterbi(Arrays.asList(line.split(" ")));
 	}
 }

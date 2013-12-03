@@ -86,7 +86,7 @@ public class HMM2 {
 		ls.add(bwd);
 		return ls;
 	}
-	public List<String> Viterbi(List<String> observs)
+	public List<Integer> Viterbi(List<String> observs)
 	{
 		int[] obvsId=observToIds(observs);
 		
@@ -116,50 +116,63 @@ public class HMM2 {
 					val= dp[j][t-1]-Math.log(tr[j][i])-Math.log(em[i][obvsId[t]]);
 					if(min > val)
 					{
+//						System.out.println("UPDATING");
 						min=val;
 						argmin=j;
 					}
-					System.out.println("STATE"+j+val+"and"+min);
-					if(min == Double.POSITIVE_INFINITY)
-					{
-						System.out.println("OH NO!!");
+//					System.out.println("STATE"+j+val+"and"+min);
+//					if(min == Double.POSITIVE_INFINITY)
+//					{
+//						System.out.println("OH NO!!");
 //						System.exit(-1);
-					}
+//					}
 				}
-				System.out.print("min should not be infinity! "+min+"argmin is "+argmin);
+//				System.out.print("min should not be infinity! "+min+"argmin is "+argmin);
 				dp[i][t]=min;
 				bp[i][t]=argmin;
 			}
-			System.out.println();
+//			System.out.println();
 		}
 		// print
-//		for(int t=0;t<observs.size();t++)
-//		{
-//			for(int i=0;i<numStates;i++)
-//				System.out.print(dp[i][t]+" ");
-//			System.out.println();
-//		}
-		assert (argmin!=-1) :  "bad end state";
-		
-		int[] answerIds= new int[observs.size()];
-		answerIds[observs.size()-1]=argmin;
-		int prev;
-		for(int i=observs.size()-2;i>=0;i--)
+		ArrayList<Integer> ans = new ArrayList<Integer>();
+		int position=-1;
+		for(int t=0;t<observs.size();t++)
 		{
-			prev=answerIds[i+1];
-			answerIds[i]=bp[prev][i+1];
+			min=Double.POSITIVE_INFINITY;
+			for(int i=0;i<numStates;i++)
+			{
+//				System.out.print(dp[i][t]+" ");
+				if(min>dp[i][t])
+				{
+					min=dp[i][t];
+					position=i;
+				}
+			}
+//			System.out.println(min+" at "+position);
+			ans.add(position);
 		}
-		for(int i=0;i<answerIds.length;i++)
-			System.out.println(answerIds[i]);
-		System.out.println("Finished!");
-		return null;
+//		assert (argmin!=-1) :  "bad end state";
+//		
+//		int[] answerIds= new int[observs.size()];
+//		answerIds[observs.size()-1]=argmin;
+//		int prev;
+//		for(int i=observs.size()-2;i>=0;i--)
+//		{
+//			prev=answerIds[i+1];
+//			answerIds[i]=bp[prev][i+1];
+//		}
+//		for(int i=0;i<answerIds.length;i++)
+//			System.out.println(answerIds[i]);
+//		return null;
+//		System.out.println("Finished!");
+		return ans;
 		
 	}
 	public int[] observToIds(List<String>observs)
 	{
 		int[] obvsId=new int[observs.size()];	// map obvs to their ids
 		for(int i=0;i<observs.size();i++)
-			obvsId[i]=lexicon.getId(observs.get(i));
+			obvsId[i]=lexicon.getObservId(observs.get(i));
 		return obvsId;
 	}
 }
