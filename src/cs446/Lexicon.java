@@ -15,26 +15,35 @@ import java.util.Set;
 public class Lexicon {
 	
 	public Map<String,Integer>word_to_id;	// int ids for each observation
+	public Map<Integer,String>id_to_word;	// 
 	public Map<String,List<String>>possible_tags_for_word;	// list of possible tags for a given string
 	public Map<String,Integer>tags_to_id;
+	public Map<Integer,String>id_to_tag;
 	public Lexicon(String doc) throws IOException
 	{
 		BufferedReader br = new BufferedReader(new FileReader(doc));
 		String line;
 		int c=0;
 		word_to_id = new HashMap<String, Integer>();	// word (observation)
+		id_to_word = new HashMap<Integer,String>();	// word (observation)
 		possible_tags_for_word= new HashMap<String,List<String>>();
 		tags_to_id= new HashMap<String,Integer>();
+		id_to_tag= new HashMap<Integer,String>();
 		while((line=br.readLine())!=null)
 		{
 			String[] parts=line.split(" ");
 			
-			word_to_id.put(parts[0], c++);
+			word_to_id.put(parts[0], c);
+			id_to_word.put(c++,parts[0]);
+			
 			possible_tags_for_word.put(parts[0],Arrays.asList(Arrays.copyOfRange(parts,1,parts.length)));
 			for(int i=1;i<parts.length;i++)
 			{
 				if(!tags_to_id.containsKey(parts[i]))
+				{
 					tags_to_id.put(parts[i], tags_to_id.size());
+					id_to_tag.put(tags_to_id.get(parts[i]),parts[i]);
+				}
 			}
 		}
 		for(Entry<String, Integer> e: tags_to_id.entrySet())
@@ -86,6 +95,7 @@ public class Lexicon {
 		for(int j=0;j<getVocabSize();j++)
 		{
 			double sum=0.0;
+			System.out.print(id_to_word.get(j)+" ");
 			for(int i=0;i<tags_to_id.size();i++)
 			{
 				if(em[i][j]==null)
