@@ -248,7 +248,7 @@ public class GetParameters {
 //			hmm.printInit();
 			while((line=br.readLine())!=null)
 			{
-				System.out.println("Processing sentence: "+counter++);
+//				System.out.println("Processing sentence: "+counter++);
 				List<String> observs = Arrays.asList(line.split(" "));
 				fwd = hmm.computeForward(observs);
 				bwd = hmm.computeBackward(observs);
