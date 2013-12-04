@@ -47,18 +47,18 @@ public class HMM2 {
 				}
 			}
 		}
-//		for(int t=0;t<observs.size()-1;t++)
-//		{
-//			for(int i=0;i<numStates;i++)
-//			{
-//				for(int j=0;j<numStates;j++)
-//				{
-//					System.out.println(epsilon[t][i][j]);
-////					if(epsilon[t][i][j]==null)
-////						System.exit(-1);
-//				}
-//			}
-//		}
+		System.out.println("Printing Epsilon");
+		for(int t=0;t<observs.size()-1;t++)
+		{
+			for(int i=0;i<numStates;i++)
+			{
+				for(int j=0;j<numStates;j++)
+				{
+					System.out.print(epsilon[t][i][j]+" ");
+				}
+			}
+			System.out.println();
+		}
 		System.out.println("Epsilon computed!");
 		return epsilon;
 		
@@ -79,14 +79,15 @@ public class HMM2 {
 				gamma[t][i]-=Z;
 			}
 		}
-//		for(int t=0;t<observs.size();t++)
-//		{
-//			for(int i=0;i<numStates;i++)
-//			{
-//				System.out.print(gamma[t][i]+" ");
-//			}
-//			System.out.println();
-//		}
+		System.out.println("Printing Gamma");
+		for(int t=0;t<observs.size();t++)
+		{
+			for(int i=0;i<numStates;i++)
+			{
+				System.out.print(gamma[t][i]+" ");
+			}
+			System.out.println();
+		}
 		
 		System.out.println("Gamma computed!");
 		return gamma;
@@ -110,12 +111,13 @@ public class HMM2 {
 				bwd[s][t]=val;
 			}
 		}
-//		for(int i=0;i<numStates;i++)
-//			{
-//				for(int j=0;j<observs.size();j++)
-//					System.out.print(bwd[i][j]+" ");
-//				System.out.println();
-//			}
+		System.out.println("Printing Backward");
+		for(int i=0;i<numStates;i++)
+			{
+				for(int j=0;j<observs.size();j++)
+					System.out.print(bwd[i][j]+" ");
+				System.out.println();
+			}
 		System.out.println("backward pass finished!");
 		return bwd;
 	}
@@ -139,12 +141,13 @@ public class HMM2 {
 				fwd[s][t]=val;
 			}
 		}
-//		for(int i=0;i<numStates;i++)
-//		{
-//			for(int j=0;j<observs.size();j++)
-//				System.out.print(fwd[i][j]+" ");
-//			System.out.println();
-//		}
+		System.out.println("Printing Forward");
+		for(int i=0;i<numStates;i++)
+		{
+			for(int j=0;j<observs.size();j++)
+				System.out.print(fwd[i][j]+" ");
+			System.out.println();
+		}
 		System.out.println("forward pass finished!");
 		return fwd;
 	}
@@ -323,11 +326,20 @@ public class HMM2 {
 					numerator=LogUtils.logAdd(numerator, epsilon[t][i][j]);
 					denominator=LogUtils.logAdd(denominator, gamma[t][i]);
 				}
-				tr[i][j]=Math.exp(numerator-denominator);
+//				System.out.println(numerator-denominator);
+//				tr[i][j]=Math.exp(numerator-denominator);
+//				tr[i][j]=numerator-denominator;
 			}
 		}
 		
 		System.out.println("Update Done!");
+	}
+	public void printInit()
+	{
+		System.out.println("Printing Init");
+		for (int i = 0; i < init_state.length; i++) {
+			System.out.print(init_state[i]+" ");
+		}
 	}
 	public void printTr()
 	{

@@ -225,15 +225,15 @@ public class GetParameters {
 		GetParameters gp=new GetParameters("data/HW6.gold.txt",lex);
 		gp.getGoldData();
 		// for supervised training ONLY USE TO CHECK CORRECTNESS OF VITERBI
-		Double[] pi = gp.getInit();
-		Double[][] tr = gp.getTr();
-		Double[][] em = gp.getEm();
-		HMM2 hmm=new HMM2(tr,em,pi,gp.getNumTags(),lex);
-		// the real deal. Unsupervised Training
-//		Double[] pi = gp.getRandomInit();
-//		Double[][] tr = gp.getRandomTr();
-//		Double[][] em = lex.getEmFromLex();
+//		Double[] pi = gp.getInit();
+//		Double[][] tr = gp.getTr();
+//		Double[][] em = gp.getEm();
 //		HMM2 hmm=new HMM2(tr,em,pi,gp.getNumTags(),lex);
+		// the real deal. Unsupervised Training
+		Double[] pi = gp.getRandomInit();
+		Double[][] tr = gp.getRandomTr();
+		Double[][] em = lex.getEmFromLex();
+		HMM2 hmm=new HMM2(tr,em,pi,gp.getNumTags(),lex);
 		String line;
 		Double[][] fwd,bwd,gamma;
 		Double[][][] epsilon;
@@ -247,9 +247,11 @@ public class GetParameters {
 			bwd = hmm.computeBackward(observs);
 			gamma = hmm.computeGamma(observs, fwd, bwd);
 			epsilon = hmm.computeEpsilon(observs, fwd, bwd);
-			hmm.updateParameters(observs,gamma,epsilon);
+			break;
+//			hmm.updateParameters(observs,gamma,epsilon);
 		}
-		hmm.printTr();
+//		hmm.printInit();;
+//		hmm.printTr();
 //
 //		BufferedReader br = new BufferedReader(new FileReader("data/HW6.train.txt"));
 //		while((line=br.readLine())!=null)
