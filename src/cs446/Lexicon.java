@@ -95,17 +95,17 @@ public class Lexicon {
 		for(int j=0;j<getVocabSize();j++)
 		{
 			double sum=0.0;
-			System.out.print(id_to_word.get(j)+" ");
+//			System.out.print(id_to_word.get(j)+" ");
 			for(int i=0;i<tags_to_id.size();i++)
 			{
 				if(em[i][j]==null)
 					em[i][j]=0.0;
-				System.out.print(em[i][j]+" ");
+//				System.out.print(em[i][j]+" ");
 				sum+=em[i][j];
 			}
 //			System.out.print("SUM "+sum);
 			assert sum==1.0;
-			System.out.println();
+//			System.out.println();
 		}
 		return em;
 	}
@@ -130,6 +130,7 @@ public class Lexicon {
 		Lexicon lex = new Lexicon("data/HW6.lexicon.txt");
 		int vocabSize = lex.getVocabSize();
 		System.out.println(vocabSize);
-		lex.getEmFromLex();
+		Double[][] em = lex.getEmFromLex();
+		System.out.println(em.length+"by"+em[0].length);
 	}
 }

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-
 import cs446.LogUtils;
 
 public class HMM2 {
@@ -24,12 +23,52 @@ public class HMM2 {
 		this.numStates = numStates;
 		this.lexicon = lexicon;
 	}
+	public Double[][][] computeEpsilon(List<String> observs, Double[][] fwd, Double[][] bwd){
+		int[] obvsId=observToIds(observs);
+		Double[][][] epsilon=new Double[observs.size()-1][numStates][numStates];	// reversed ORDER!!
+		Double Z;
+		for(int t=0;t<observs.size()-1;t++)
+		{
+			Z=Double.NEGATIVE_INFINITY;
+			for(int i=0;i<numStates;i++)
+			{
+				for(int j=0;j<numStates;j++)
+				{
+//					System.out.println(obvsId[t+1]);
+					epsilon[t][i][j]=fwd[i][t]+bwd[j][t+1]+Math.log(tr[i][j])+Math.log(em[j][obvsId[t+1]]);
+					Z=LogUtils.logAdd(Z, epsilon[t][i][j]);
+				}
+			}
+			for(int i=0;i<numStates;i++)
+			{
+				for(int j=0;j<numStates;j++)
+				{
+					epsilon[t][i][j]-=Z;
+				}
+			}
+		}
+//		for(int t=0;t<observs.size()-1;t++)
+//		{
+//			for(int i=0;i<numStates;i++)
+//			{
+//				for(int j=0;j<numStates;j++)
+//				{
+//					System.out.println(epsilon[t][i][j]);
+////					if(epsilon[t][i][j]==null)
+////						System.exit(-1);
+//				}
+//			}
+//		}
+		System.out.println("Epsilon computed!");
+		return epsilon;
+		
+	}
 	public Double[][] computeGamma(List<String> observs, Double[][] fwd, Double[][] bwd){
 		Double[][] gamma=new Double[observs.size()][numStates];	// reversed ORDER!!
 		Double Z=0.0;
 		for(int t=0;t<observs.size();t++)
 		{
-			Z=0.0;
+			Z=Double.NEGATIVE_INFINITY;
 			for(int i=0;i<numStates;i++)
 			{
 				gamma[t][i]=fwd[i][t]+bwd[i][t];
@@ -63,7 +102,7 @@ public class HMM2 {
 		{
 			for(int s=0;s<numStates;s++)
 			{
-				Double val=0.0;
+				Double val=Double.NEGATIVE_INFINITY;
 				for(int j=0;j<numStates;j++)
 				{
 					val=LogUtils.logAdd(val,bwd[j][t+1]+Math.log(tr[s][j])+Math.log(em[j][obvsId[t+1]]));
@@ -91,7 +130,7 @@ public class HMM2 {
 		{
 			for(int s=0;s<numStates;s++)
 			{
-				Double val=0.0;
+				Double val=Double.NEGATIVE_INFINITY;
 				for(int j=0;j<numStates;j++)
 				{
 					val=LogUtils.logAdd(val,fwd[j][t-1]+Math.log(tr[j][s]));
@@ -269,4 +308,20 @@ public class HMM2 {
 //	public static void main(String[] args) {
 ////		HMM2 hmm=new HMM2();
 //	}
+	public void updateParameters(List<String> observs, Double[][] gamma,
+			Double[][][] epsilon) {
+		for(int i=0;i<numStates;i++)
+			init_state[i]=gamma[1][i];
+		double numerator=Double.NEGATIVE_INFINITY;
+		for(int i=0;i<numStates;i++)
+		{
+			for (int j = 0; j <numStates; j++) 
+			{
+				for(int t=0;t<observs.size()-1;t++)
+				{
+					numerator=LogUtils.logAdd(numerator, epsilon[t][i][j]);
+				}
+			}
+		}
+	}
 }

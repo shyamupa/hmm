@@ -93,6 +93,19 @@ public class GetParameters {
 		}
 		return em;
 	}
+	public Double[] getRandomInit(){
+		Double[] init=new Double[POStable.size()];
+		for(int i=0;i<POStable.size();i++)
+			init[i]=1.0/POStable.size();
+		return init;
+	}
+	public Double[][] getRandomTr(){
+		Double[][] tr = new Double[POStable.size()][POStable.size()];
+		for(int i=0;i<POStable.size();i++)
+			for(int j=0;j<POStable.size();j++)
+				tr[i][j]=1.0/POStable.size();
+		return tr;
+	}
 	public Double[] getInit(){
 		Double[] init=new Double[POStable.size()];
 		Double sum=0.0;
@@ -110,7 +123,7 @@ public class GetParameters {
 		
 		return init;
 	}
-	public void LearnFromLabeledData() throws IOException{
+	public void getGoldData() throws IOException{
 		BufferedReader br = new BufferedReader(new FileReader(trainfile));
 		String line;
 		int c=1;
@@ -210,20 +223,29 @@ public class GetParameters {
 	public static void main(String[] args) throws IOException {
 		Lexicon lex=new Lexicon("data/HW6.lexicon.txt");
 		GetParameters gp=new GetParameters("data/HW6.gold.txt",lex);
-		gp.LearnFromLabeledData();
+		gp.getGoldData();
+		// for supervised training ONLY USE TO CHECK CORRECTNESS OF VITERBI
 		Double[] pi = gp.getInit();
 		Double[][] tr = gp.getTr();
 		Double[][] em = gp.getEm();
 		HMM2 hmm=new HMM2(tr,em,pi,gp.getNumTags(),lex);
+		// the real deal. Unsupervised Training
+//		Double[] pi = gp.getRandomInit();
+//		Double[][] tr = gp.getRandomTr();
+//		Double[][] em = lex.getEmFromLex();
+//		HMM2 hmm=new HMM2(tr,em,pi,gp.getNumTags(),lex);
 		String line;
-		Double[][] fwd,bwd;
+		Double[][] fwd,bwd,gamma;
+		Double[][][] epsilon;
 		BufferedReader br = new BufferedReader(new FileReader("data/HW6.train.txt"));
 		while((line=br.readLine())!=null)
 		{
 			List<String> observs = Arrays.asList(line.split(" "));
-			fwd=hmm.computeForward(observs);
-			bwd=hmm.computeBackward(observs);
-			hmm.computeGamma(observs, fwd, bwd);
+			fwd = hmm.computeForward(observs);
+			bwd = hmm.computeBackward(observs);
+			gamma = hmm.computeGamma(observs, fwd, bwd);
+			epsilon = hmm.computeEpsilon(observs, fwd, bwd);
+			hmm.updateParameters(observs,gamma,epsilon);
 		}
 //
 //		BufferedReader br = new BufferedReader(new FileReader("data/HW6.train.txt"));
