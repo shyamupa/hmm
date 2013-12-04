@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+
+import cs446.LogUtils;
+
 public class HMM2 {
 	
 	private Double[][] tr;	// StateId -> StateId -> Prob
@@ -21,71 +24,131 @@ public class HMM2 {
 		this.numStates = numStates;
 		this.lexicon = lexicon;
 	}
-
-	private List<Double[][]> computeForwardAndBackward(List<String> observs) 
-	{
+	public Double[][] computeBackward(List<String> observs){
 		int[] obvsId=observToIds(observs);
-		
-		Double[][] fwd=new Double[numStates][observs.size()];
 		Double[][] bwd=new Double[numStates][observs.size()];
-		Double[] Z= new Double[observs.size()];
-		Z[0]=0.0;
 		for(int i=0;i<numStates;i++)
 		{
-			fwd[i][0]=init_state[i]*em[i][obvsId[0]];
-			Z[0]+=fwd[i][0];
+			bwd[i][observs.size()-1]=Math.log(1);
 		}
-		assert Z[0]!=0.0;
-		
-		for(int i=0;i<numStates;i++)
+		for(int t=obvsId.length-2;t>=0;t--)
 		{
-			fwd[i][0]/=Z[0];
-		}
-		
-		for(int t=1;t<obvsId.length;t++)
-		{
-			Z[t]=0.0;
 			for(int s=0;s<numStates;s++)
 			{
 				Double val=0.0;
 				for(int j=0;j<numStates;j++)
 				{
-					val+=fwd[j][t-1]*tr[j][s];
+					val=LogUtils.logAdd(val,bwd[j][t+1]+Math.log(tr[s][j])+Math.log(em[j][obvsId[t+1]]));
 				}
-				val*=em[s][obvsId[t]];
-				fwd[s][t]=val;
-				Z[t]+=fwd[s][t];
-			}
-			assert Z[t]!=0.0;
-			for(int s=0;s<numStates;s++)
-			{
-				fwd[s][t]/=Z[t];
+				bwd[s][t]=val;
 			}
 		}
-		// Z[t] computed for all time t !!
-		
+//		for(int i=0;i<numStates;i++)
+//			{
+//				for(int j=0;j<observs.size();j++)
+//					System.out.print(bwd[i][j]+" ");
+//				System.out.println();
+//			}
+		System.out.println("backward pass finished!");
+		return bwd;
+	}
+	public Double[][] computeForward(List<String> observs){
+		int[] obvsId=observToIds(observs);
+		Double[][] fwd=new Double[numStates][observs.size()];
 		for(int i=0;i<numStates;i++)
 		{
-			bwd[i][observs.size()-1]=1/Z[observs.size()-1];
+			fwd[i][0]=Math.log(init_state[i])+Math.log(em[i][obvsId[0]]);
 		}
-		
-		for(int t=observs.size()-2;t>=0;t--)
+		for(int t=1;t<obvsId.length;t++)
 		{
 			for(int s=0;s<numStates;s++)
 			{
-				Double val = 0.0;
+				Double val=0.0;
 				for(int j=0;j<numStates;j++)
 				{
-					val+=bwd[j][t+1]*tr[j][s]*em[j][obvsId[t+1]];
+					val=LogUtils.logAdd(val,fwd[j][t-1]+Math.log(tr[j][s]));
 				}
-				bwd[s][t]=val/Z[t];
+				val+=em[s][obvsId[t]];
+				fwd[s][t]=val;
 			}
 		}
-		List<Double[][]> ls=new ArrayList<Double[][]>();
-		ls.add(fwd);
-		ls.add(bwd);
-		return ls;
+//		for(int i=0;i<numStates;i++)
+//		{
+//			for(int j=0;j<observs.size();j++)
+//				System.out.print(fwd[i][j]+" ");
+//			System.out.println();
+//		}
+		System.out.println("forward pass finished!");
+		return fwd;
 	}
+//	private List<Double[][]> computeForwardAndBackward(List<String> observs) 
+//	{
+//		int[] obvsId=observToIds(observs);
+//		
+//		Double[][] fwd=new Double[numStates][observs.size()];
+//		Double[][] bwd=new Double[numStates][observs.size()];
+////		Double[] C= new Double[observs.size()];	// partition function
+////		C[0]=0.0;
+////		ArrayList<Double> temp= new ArrayList<Double>();
+//		for(int i=0;i<numStates;i++)
+//		{
+//			fwd[i][0]=Math.log(init_state[i])+Math.log(em[i][obvsId[0]]);
+////			temp.add(fwd[i][0]);
+//		}
+////		LogUtils.logPartition(temp);
+////		
+////		assert C[0]!=0.0;
+////		
+////		for(int i=0;i<numStates;i++)
+////		{
+////			fwd[i][0]/=C[0];
+////		}
+//		
+//		for(int t=1;t<obvsId.length;t++)
+//		{
+////			C[t]=0.0;
+//			for(int s=0;s<numStates;s++)
+//			{
+//				Double val=0.0;
+//				for(int j=0;j<numStates;j++)
+//				{
+//					val+=fwd[j][t-1]*tr[j][s];
+//				}
+//				val*=em[s][obvsId[t]];
+//				fwd[s][t]=val;
+//				C[t]+=fwd[s][t];
+//			}
+//			assert C[t]!=0.0;
+//			for(int s=0;s<numStates;s++)
+//			{
+//				fwd[s][t]/=C[t];
+//			}
+//		}
+//		// Z[t] computed for all time t !!
+//		
+//		for(int i=0;i<numStates;i++)
+//		{
+//			bwd[i][observs.size()-1]=1/C[observs.size()-1];
+//		}
+//		
+//		for(int t=observs.size()-2;t>=0;t--)
+//		{
+//			for(int s=0;s<numStates;s++)
+//			{
+//				Double val = 0.0;
+//				for(int j=0;j<numStates;j++)
+//				{
+//					val+=bwd[j][t+1]*tr[j][s]*em[j][obvsId[t+1]];
+//				}
+//				bwd[s][t]=val/C[t];
+//			}
+//		}
+//		List<Double[][]> ls=new ArrayList<Double[][]>();
+//		ls.add(fwd);
+//		ls.add(bwd);
+//		return ls;
+//	}
+	
 	public List<Integer> Viterbi(List<String> observs)
 	{
 		int[] obvsId=observToIds(observs);
@@ -175,4 +238,7 @@ public class HMM2 {
 			obvsId[i]=lexicon.getObservId(observs.get(i));
 		return obvsId;
 	}
+//	public static void main(String[] args) {
+////		HMM2 hmm=new HMM2();
+//	}
 }

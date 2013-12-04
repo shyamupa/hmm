@@ -218,18 +218,25 @@ public class GetParameters {
 		BufferedReader br = new BufferedReader(new FileReader("data/HW6.train.txt"));
 		while((line=br.readLine())!=null)
 		{
-//			System.out.println(line);
-		
-//		for(int i=0;i<line.split(" ").length;i++)
-//			System.out.println(line.split(" ")[i]);
-//		System.out.println("-----");
-			List<Integer> ans = hmm.Viterbi(Arrays.asList(line.split(" ")));
-			for(int a: ans)
-			{
-	//			System.out.println(a);
-				System.out.print(gp.getTagFromId(a)+" ");
-			}
-			System.out.println();
+			hmm.computeForward(Arrays.asList(line.split(" ")));
+			hmm.computeBackward(Arrays.asList(line.split(" ")));
 		}
+//
+//		BufferedReader br = new BufferedReader(new FileReader("data/HW6.train.txt"));
+//		while((line=br.readLine())!=null)
+//		{
+////			System.out.println(line);
+//		
+////		for(int i=0;i<line.split(" ").length;i++)
+////			System.out.println(line.split(" ")[i]);
+////		System.out.println("-----");
+//			List<Integer> ans = hmm.Viterbi(Arrays.asList(line.split(" ")));
+//			for(int a: ans)
+//			{
+//	//			System.out.println(a);
+//				System.out.print(gp.getTagFromId(a)+" ");
+//			}
+//			System.out.println();
+//		}
 	}
 }

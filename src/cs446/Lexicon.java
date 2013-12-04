@@ -103,7 +103,7 @@ public class Lexicon {
 				System.out.print(em[i][j]+" ");
 				sum+=em[i][j];
 			}
-			System.out.print("SUM "+sum);
+//			System.out.print("SUM "+sum);
 			assert sum==1.0;
 			System.out.println();
 		}
