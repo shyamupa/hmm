@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,6 +18,7 @@ public class Lexicon {
 	public Map<String,Integer>word_to_id;	// int ids for each observation
 	public Map<Integer,String>id_to_word;	// 
 	public Map<String,List<String>>possible_tags_for_word;	// list of possible tags for a given string
+	public Map<String,List<String>>possible_words_for_tag;
 	public Map<String,Integer>tags_to_id;
 	public Map<Integer,String>id_to_tag;
 	public Lexicon(String doc) throws IOException
@@ -27,6 +29,7 @@ public class Lexicon {
 		word_to_id = new HashMap<String, Integer>();	// word (observation)
 		id_to_word = new HashMap<Integer,String>();	// word (observation)
 		possible_tags_for_word= new HashMap<String,List<String>>();
+		possible_words_for_tag= new HashMap<String,List<String>>();
 		tags_to_id= new HashMap<String,Integer>();
 		id_to_tag= new HashMap<Integer,String>();
 		while((line=br.readLine())!=null)
@@ -37,12 +40,19 @@ public class Lexicon {
 			id_to_word.put(c++,parts[0]);
 			
 			possible_tags_for_word.put(parts[0],Arrays.asList(Arrays.copyOfRange(parts,1,parts.length)));
-			for(int i=1;i<parts.length;i++)
+			for(int i=1;i<parts.length;i++)	// iterate over tags
 			{
 				if(!tags_to_id.containsKey(parts[i]))
 				{
 					tags_to_id.put(parts[i], tags_to_id.size());
 					id_to_tag.put(tags_to_id.get(parts[i]),parts[i]);
+				}
+				if(possible_words_for_tag.containsKey(parts[i]))
+					possible_words_for_tag.get(parts[i]).add(parts[0]);
+				else
+				{
+					possible_words_for_tag.put(parts[i],new ArrayList<String>());
+					possible_words_for_tag.get(parts[i]).add(parts[0]);
 				}
 			}
 		}
@@ -61,25 +71,14 @@ public class Lexicon {
 //			System.out.println();
 //		}
 	}
-//	public Double[] getInitFromLex()	// starting point for EM
-//	{
-//		for(String word:possible_tags.keySet())
-//			for()
-//			
-//	}
-//	public Double[][] getTrFromLex()	// starting point for EM
-//	{
-//		Double[][] tr= new Double[][]
-//	}
 	public Double[][] getEmFromLex()	// starting point for EM
 	{
 		Double[][] em= new Double[tags_to_id.size()][getVocabSize()];
-		for(String s:possible_tags_for_word.keySet())
+		for(String pos:possible_words_for_tag.keySet())
 		{
-			for(String pos: possible_tags_for_word.get(s))
+			for(String s: possible_words_for_tag.get(pos))
 			{
-				em[getTagId(pos)][word_to_id.get(s)]=1.0/(possible_tags_for_word.get(s).size());
-		
+				em[getTagId(pos)][word_to_id.get(s)]=1.0/possible_words_for_tag.get(pos).size();
 			}
 		}
 //		for(int i=0;i<tags_index.size();i++)
@@ -92,11 +91,11 @@ public class Lexicon {
 //			}
 //			System.out.println();
 //		}
-		for(int j=0;j<getVocabSize();j++)
+		for(int i=0;i<tags_to_id.size();i++)
 		{
 			double sum=0.0;
 //			System.out.print(id_to_word.get(j)+" ");
-			for(int i=0;i<tags_to_id.size();i++)
+			for(int j=0;j<getVocabSize();j++)
 			{
 				if(em[i][j]==null)
 					em[i][j]=0.0;
@@ -131,6 +130,12 @@ public class Lexicon {
 		int vocabSize = lex.getVocabSize();
 		System.out.println(vocabSize);
 		Double[][] em = lex.getEmFromLex();
-		System.out.println(em.length+"by"+em[0].length);
+		for (int i = 0; i < em.length; i++) {
+			for (int j = 0; j < em[0].length; j++) {
+				System.out.print(em[i][j]);
+			}
+			System.out.println();
+		}
+		//System.out.println(em.length+"by"+em[0].length);
 	}
 }

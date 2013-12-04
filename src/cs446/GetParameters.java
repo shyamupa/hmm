@@ -234,24 +234,46 @@ public class GetParameters {
 		Double[][] tr = gp.getRandomTr();
 		Double[][] em = lex.getEmFromLex();
 		HMM2 hmm=new HMM2(tr,em,pi,gp.getNumTags(),lex);
+		
 		String line;
 		Double[][] fwd,bwd,gamma;
 		Double[][][] epsilon;
-		BufferedReader br = new BufferedReader(new FileReader("data/HW6.train.txt"));
-		int counter=0;
-		while((line=br.readLine())!=null)
+		
+		int iteration=0;
+		while(iteration!=10)	// num of iterations
 		{
-			System.out.println("Processing sentence: "+counter++);
-			List<String> observs = Arrays.asList(line.split(" "));
-			fwd = hmm.computeForward(observs);
-			bwd = hmm.computeBackward(observs);
-			gamma = hmm.computeGamma(observs, fwd, bwd);
-			epsilon = hmm.computeEpsilon(observs, fwd, bwd);
-			break;
-//			hmm.updateParameters(observs,gamma,epsilon);
+			BufferedReader br = new BufferedReader(new FileReader("data/HW6.train.txt"));
+			int counter=1;
+			hmm.resetUpdates();
+//			hmm.printInit();
+			while((line=br.readLine())!=null)
+			{
+				System.out.println("Processing sentence: "+counter++);
+				List<String> observs = Arrays.asList(line.split(" "));
+				fwd = hmm.computeForward(observs);
+				bwd = hmm.computeBackward(observs);
+				gamma = hmm.computeGamma(observs, fwd, bwd);
+				epsilon = hmm.computeEpsilon(observs, fwd, bwd);
+				hmm.updateParameters(observs,gamma,epsilon);
+	//			hmm.printInitUpdate();
+	//			hmm.printInit();
+	//			hmm.printTr();
+	//			break;
+			}
+//			hmm.printTrUpdate();
+//			hmm.printInitUpdate();
+//			hmm.printEmUpdate();
+			hmm.updateInit(counter);
+			hmm.updateTr(counter);
+			hmm.updateEM(counter);
+			iteration++;
+			System.out.println("Finished iteration "+iteration);
+			br.close();
 		}
-//		hmm.printInit();;
-//		hmm.printTr();
+		
+		hmm.printInit();
+		hmm.printTr();
+		hmm.printEm();
 //
 //		BufferedReader br = new BufferedReader(new FileReader("data/HW6.train.txt"));
 //		while((line=br.readLine())!=null)

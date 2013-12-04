@@ -14,6 +14,12 @@ public class HMM2 {
 	private int numStates;
 	private Lexicon lexicon;
 	
+	public Double[] init_update;
+	ArrayList<int[]> non_zero_em;
+	Double[][] tr_numerator;
+	Double[][] tr_denominator;
+	Double[][] em_numerator;
+	Double[][] em_denominator;
 	
 	public HMM2(Double[][] tr, Double[][] em, Double[] init_state,
 			int numStates, Lexicon lexicon) {
@@ -22,6 +28,24 @@ public class HMM2 {
 		this.init_state = init_state;
 		this.numStates = numStates;
 		this.lexicon = lexicon;
+		non_zero_em=new ArrayList<int[]>();
+		for (int i = 0; i < em.length; i++) {
+			for (int j = 0; j < em[0].length; j++) {
+				if(em[i][j]!=0.0)
+					non_zero_em.add(new int[]{i,j});
+			}
+		}
+//		for(int[] a:non_zero_em)
+//			System.out.println(a[0]+" "+a[1]);
+//		
+		init_update=new Double[init_state.length];
+		
+		tr_numerator= new Double[tr.length][tr[0].length];
+		tr_denominator= new Double[tr.length][tr[0].length];
+		
+		em_numerator= new Double[em.length][em[0].length];
+		em_denominator= new Double[em.length][em[0].length];
+		
 	}
 	public Double[][][] computeEpsilon(List<String> observs, Double[][] fwd, Double[][] bwd){
 		int[] obvsId=observToIds(observs);
@@ -47,19 +71,19 @@ public class HMM2 {
 				}
 			}
 		}
-		System.out.println("Printing Epsilon");
-		for(int t=0;t<observs.size()-1;t++)
-		{
-			for(int i=0;i<numStates;i++)
-			{
-				for(int j=0;j<numStates;j++)
-				{
-					System.out.print(epsilon[t][i][j]+" ");
-				}
-			}
-			System.out.println();
-		}
-		System.out.println("Epsilon computed!");
+//		System.out.println("Printing Epsilon");
+//		for(int t=0;t<observs.size()-1;t++)
+//		{
+//			for(int i=0;i<numStates;i++)
+//			{
+//				for(int j=0;j<numStates;j++)
+//				{
+//					System.out.print(epsilon[t][i][j]+" ");
+//				}
+//			}
+//			System.out.println();
+//		}
+//		System.out.println("Epsilon computed!");
 		return epsilon;
 		
 	}
@@ -79,17 +103,17 @@ public class HMM2 {
 				gamma[t][i]-=Z;
 			}
 		}
-		System.out.println("Printing Gamma");
-		for(int t=0;t<observs.size();t++)
-		{
-			for(int i=0;i<numStates;i++)
-			{
-				System.out.print(gamma[t][i]+" ");
-			}
-			System.out.println();
-		}
+//		System.out.println("Printing Gamma");
+//		for(int t=0;t<observs.size();t++)
+//		{
+//			for(int i=0;i<numStates;i++)
+//			{
+//				System.out.print(gamma[t][i]+" ");
+//			}
+//			System.out.println();
+//		}
 		
-		System.out.println("Gamma computed!");
+//		System.out.println("Gamma computed!");
 		return gamma;
 	}
 	public Double[][] computeBackward(List<String> observs){
@@ -111,14 +135,14 @@ public class HMM2 {
 				bwd[s][t]=val;
 			}
 		}
-		System.out.println("Printing Backward");
-		for(int i=0;i<numStates;i++)
-			{
-				for(int j=0;j<observs.size();j++)
-					System.out.print(bwd[i][j]+" ");
-				System.out.println();
-			}
-		System.out.println("backward pass finished!");
+//		System.out.println("Printing Backward");
+//		for(int i=0;i<numStates;i++)
+//		{
+//			for(int j=0;j<observs.size();j++)
+//				System.out.print(bwd[i][j]+" ");
+//			System.out.println();
+//		}
+//		System.out.println("backward pass finished!");
 		return bwd;
 	}
 	public Double[][] computeForward(List<String> observs){
@@ -127,6 +151,8 @@ public class HMM2 {
 		for(int i=0;i<numStates;i++)
 		{
 			fwd[i][0]=Math.log(init_state[i])+Math.log(em[i][obvsId[0]]);
+			if(Double.isNaN(fwd[i][0]))
+				System.out.println("VAL "+Math.log(init_state[i])+"VAL 2 "+Math.log(em[i][obvsId[0]]));
 		}
 		for(int t=1;t<obvsId.length;t++)
 		{
@@ -141,83 +167,21 @@ public class HMM2 {
 				fwd[s][t]=val;
 			}
 		}
-		System.out.println("Printing Forward");
-		for(int i=0;i<numStates;i++)
-		{
-			for(int j=0;j<observs.size();j++)
-				System.out.print(fwd[i][j]+" ");
-			System.out.println();
-		}
-		System.out.println("forward pass finished!");
+//		System.out.println("Printing Forward");
+//		for(int i=0;i<numStates;i++)
+//		{
+//			for(int j=0;j<observs.size();j++)
+//			{
+//				if(Double.isNaN((fwd[i][j])))
+//						System.out.println("ERROR! "+i+" "+j);
+////				System.out.print(fwd[i][j]+" ");
+//			}
+//			System.out.println();
+//		}
+//		System.out.println("forward pass finished!");
 		return fwd;
 	}
-//	private List<Double[][]> computeForwardAndBackward(List<String> observs) 
-//	{
-//		int[] obvsId=observToIds(observs);
-//		
-//		Double[][] fwd=new Double[numStates][observs.size()];
-//		Double[][] bwd=new Double[numStates][observs.size()];
-////		Double[] C= new Double[observs.size()];	// partition function
-////		C[0]=0.0;
-////		ArrayList<Double> temp= new ArrayList<Double>();
-//		for(int i=0;i<numStates;i++)
-//		{
-//			fwd[i][0]=Math.log(init_state[i])+Math.log(em[i][obvsId[0]]);
-////			temp.add(fwd[i][0]);
-//		}
-////		LogUtils.logPartition(temp);
-////		
-////		assert C[0]!=0.0;
-////		
-////		for(int i=0;i<numStates;i++)
-////		{
-////			fwd[i][0]/=C[0];
-////		}
-//		
-//		for(int t=1;t<obvsId.length;t++)
-//		{
-////			C[t]=0.0;
-//			for(int s=0;s<numStates;s++)
-//			{
-//				Double val=0.0;
-//				for(int j=0;j<numStates;j++)
-//				{
-//					val+=fwd[j][t-1]*tr[j][s];
-//				}
-//				val*=em[s][obvsId[t]];
-//				fwd[s][t]=val;
-//				C[t]+=fwd[s][t];
-//			}
-//			assert C[t]!=0.0;
-//			for(int s=0;s<numStates;s++)
-//			{
-//				fwd[s][t]/=C[t];
-//			}
-//		}
-//		// Z[t] computed for all time t !!
-//		
-//		for(int i=0;i<numStates;i++)
-//		{
-//			bwd[i][observs.size()-1]=1/C[observs.size()-1];
-//		}
-//		
-//		for(int t=observs.size()-2;t>=0;t--)
-//		{
-//			for(int s=0;s<numStates;s++)
-//			{
-//				Double val = 0.0;
-//				for(int j=0;j<numStates;j++)
-//				{
-//					val+=bwd[j][t+1]*tr[j][s]*em[j][obvsId[t+1]];
-//				}
-//				bwd[s][t]=val/C[t];
-//			}
-//		}
-//		List<Double[][]> ls=new ArrayList<Double[][]>();
-//		ls.add(fwd);
-//		ls.add(bwd);
-//		return ls;
-//	}
+//	
 	
 	public List<Integer> Viterbi(List<String> observs)
 	{
@@ -311,36 +275,148 @@ public class HMM2 {
 //	public static void main(String[] args) {
 ////		HMM2 hmm=new HMM2();
 //	}
+	public void resetUpdates(){
+		for(int i=0;i<numStates;i++)
+		{
+			init_update[i]=0.0;
+//			System.out.println(init_state[i]);
+		}
+		for (int i = 0; i < tr.length; i++) {
+			for (int j = 0; j < tr[0].length; j++) {
+				tr_numerator[i][j]=Double.NEGATIVE_INFINITY;
+				tr_denominator[i][j]=Double.NEGATIVE_INFINITY;
+			}
+		}
+		for (int i = 0; i < em.length; i++) {
+			for (int j = 0; j < em[0].length; j++) {
+				em_numerator[i][j]=Double.NEGATIVE_INFINITY;
+				em_denominator[i][j]=Double.NEGATIVE_INFINITY;
+			}
+		}
+		
+	}
 	public void updateParameters(List<String> observs, Double[][] gamma,
 			Double[][][] epsilon) {
+		int[] obvId = observToIds(observs);
 		for(int i=0;i<numStates;i++)
-			init_state[i]=gamma[0][i];
-		double numerator=Double.NEGATIVE_INFINITY;
-		double denominator=Double.NEGATIVE_INFINITY;
+		{
+			init_update[i]+=Math.exp(gamma[0][i]);
+//			init_state[i]=Math.exp(gamma[0][i]);
+//			System.out.println(init_state[i]);
+		}
+		
 		for(int i=0;i<numStates;i++)
 		{
 			for (int j = 0; j <numStates; j++) 
 			{
 				for(int t=0;t<observs.size()-1;t++)
 				{
-					numerator=LogUtils.logAdd(numerator, epsilon[t][i][j]);
-					denominator=LogUtils.logAdd(denominator, gamma[t][i]);
+					tr_numerator[i][j]=LogUtils.logAdd(tr_numerator[i][j], epsilon[t][i][j]);
+					tr_denominator[i][j]=LogUtils.logAdd(tr_denominator[i][j], gamma[t][i]);
+//					System.out.println("Gamma added was "+gamma[t][i]);
 				}
-//				System.out.println(numerator-denominator);
-//				tr[i][j]=Math.exp(numerator-denominator);
-//				tr[i][j]=numerator-denominator;
+//				if(Double.isNaN(Math.exp(numerator-denominator)))
+//				{
+//					System.err.println("ALERT!! YOU are now entering NaN Domain! You have been warned!");
+//					System.out.println(numerator+" "+denominator+" "+(numerator-denominator)+" exp"+Math.exp(numerator-denominator));
+////					System.exit(-1);
+//				}
+////				System.out.println(numerator-denominator+" exp"+Math.exp(numerator-denominator));
+//				tr_update[i][j]+=Math.exp(numerator-denominator);
+////				tr[i][j]=numerator-denominator;
 			}
 		}
 		
+		for(int[]a:non_zero_em)
+		{
+			int j=a[0];
+			int k=a[1];
+			for(int t=0;t<observs.size();t++)
+			{
+				if(obvId[t]==k)
+				{
+					em_numerator[j][k]=LogUtils.logAdd(em_numerator[j][k], gamma[t][j]);
+				}
+				em_denominator[j][k]=LogUtils.logAdd(em_denominator[j][k], gamma[t][j]);
+	//					System.out.println("Gamma added was "+gamma[t][i]);
+			}
+		}
 		System.out.println("Update Done!");
 	}
+	public void printTrUpdate(){
+		for (int i = 0; i < tr.length; i++) {
+			for (int j = 0; j < tr[0].length; j++) {
+				System.out.print(Math.exp(tr_numerator[i][j]-tr_denominator[i][j])+" ");
+			}
+			System.out.println();
+		}
+	}
+	public void printEmUpdate(){
+		for(int[]a:non_zero_em)
+		{
+			int j=a[0];
+			int k=a[1];
+			System.out.print(Math.exp(em_numerator[j][k]-em_denominator[j][k])+"__");
+		}
+	}
+	public void printInitUpdate()
+	{
+		System.out.println("Printing InitUpdate");
+		for (int i = 0; i < init_update.length; i++) {
+			System.out.print(init_update[i]+" ");
+		}
+		System.out.println();
+	}
+	
+	
+	public void updateInit(int counter) {
+		double sum=0.0;
+		for(int i=0;i<numStates;i++)
+		{
+//			init_update[i]+=Math.exp(gamma[0][i]);
+			init_state[i]=init_update[i]/counter;
+			sum+=init_state[i];
+//			System.out.println(init_state[i]);
+		}
+		assert sum==1.0;
+	}
+	public void updateTr(int counter) {
+		double sum;
+		for (int i = 0; i < tr.length; i++) {
+			sum=0.0;
+			for (int j = 0; j < tr[0].length; j++) {
+				tr[i][j]=Math.exp(tr_numerator[i][j]-tr_denominator[i][j])/counter;
+				sum+=tr[i][j];
+			}
+			assert sum==1.0;
+		}
+	}
+	public void updateEM(int counter){
+		for(int[]a:non_zero_em)
+		{
+			int j=a[0];
+			int k=a[1];
+			em[j][k]=Math.exp(em_numerator[j][k]-em_denominator[j][k])/counter;
+		}
+		double sum;
+		for (int i = 0; i < em.length; i++) {
+			sum=0.0;
+			for (int j = 0; j < em[0].length; j++) {
+				sum+=em[i][j];
+			}
+			assert sum==1.0;
+		}
+	}
+	
 	public void printInit()
 	{
 		System.out.println("Printing Init");
 		for (int i = 0; i < init_state.length; i++) {
 			System.out.print(init_state[i]+" ");
 		}
+		System.out.println();
 	}
+	
 	public void printTr()
 	{
 		System.out.println("Printing TR");
@@ -351,4 +427,15 @@ public class HMM2 {
 			System.out.println();
 		}
 	}
+	public void printEm(){
+		System.out.println("Printing EM");
+		for (int i = 0; i < em.length; i++) {
+			for (int j = 0; j < em[0].length; j++) {
+				System.out.print(em[i][j]+" ");
+			}
+			System.out.println();
+		}
+		
+	}
+	
 }
