@@ -341,7 +341,7 @@ public class HMM2 {
 	//					System.out.println("Gamma added was "+gamma[t][i]);
 			}
 		}
-		System.out.println("Update Done!");
+//		System.out.println("Update Done!");
 	}
 	public void printTrUpdate(){
 		for (int i = 0; i < tr.length; i++) {
