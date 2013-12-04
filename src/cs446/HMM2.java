@@ -24,6 +24,34 @@ public class HMM2 {
 		this.numStates = numStates;
 		this.lexicon = lexicon;
 	}
+	public Double[][] computeGamma(List<String> observs, Double[][] fwd, Double[][] bwd){
+		Double[][] gamma=new Double[observs.size()][numStates];	// reversed ORDER!!
+		Double Z=0.0;
+		for(int t=0;t<observs.size();t++)
+		{
+			Z=0.0;
+			for(int i=0;i<numStates;i++)
+			{
+				gamma[t][i]=fwd[i][t]+bwd[i][t];
+				Z=LogUtils.logAdd(Z, gamma[t][i]);
+			}
+			for(int i=0;i<numStates;i++)
+			{
+				gamma[t][i]-=Z;
+			}
+		}
+//		for(int t=0;t<observs.size();t++)
+//		{
+//			for(int i=0;i<numStates;i++)
+//			{
+//				System.out.print(gamma[t][i]+" ");
+//			}
+//			System.out.println();
+//		}
+		
+		System.out.println("Gamma computed!");
+		return gamma;
+	}
 	public Double[][] computeBackward(List<String> observs){
 		int[] obvsId=observToIds(observs);
 		Double[][] bwd=new Double[numStates][observs.size()];

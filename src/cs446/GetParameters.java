@@ -208,18 +208,22 @@ public class GetParameters {
 		return null;
 	}
 	public static void main(String[] args) throws IOException {
-		GetParameters gp=new GetParameters("data/HW6.gold.txt",new Lexicon("data/HW6.lexicon.txt"));
+		Lexicon lex=new Lexicon("data/HW6.lexicon.txt");
+		GetParameters gp=new GetParameters("data/HW6.gold.txt",lex);
 		gp.LearnFromLabeledData();
 		Double[] pi = gp.getInit();
 		Double[][] tr = gp.getTr();
 		Double[][] em = gp.getEm();
-		HMM2 hmm=new HMM2(tr,em,pi,gp.getNumTags(),gp.lex);
+		HMM2 hmm=new HMM2(tr,em,pi,gp.getNumTags(),lex);
 		String line;
+		Double[][] fwd,bwd;
 		BufferedReader br = new BufferedReader(new FileReader("data/HW6.train.txt"));
 		while((line=br.readLine())!=null)
 		{
-			hmm.computeForward(Arrays.asList(line.split(" ")));
-			hmm.computeBackward(Arrays.asList(line.split(" ")));
+			List<String> observs = Arrays.asList(line.split(" "));
+			fwd=hmm.computeForward(observs);
+			bwd=hmm.computeBackward(observs);
+			hmm.computeGamma(observs, fwd, bwd);
 		}
 //
 //		BufferedReader br = new BufferedReader(new FileReader("data/HW6.train.txt"));
