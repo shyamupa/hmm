@@ -65,7 +65,7 @@ public class HMM2 {
 	}
 	public Double[][] computeGamma(List<String> observs, Double[][] fwd, Double[][] bwd){
 		Double[][] gamma=new Double[observs.size()][numStates];	// reversed ORDER!!
-		Double Z=0.0;
+		Double Z;
 		for(int t=0;t<observs.size();t++)
 		{
 			Z=Double.NEGATIVE_INFINITY;
@@ -311,8 +311,9 @@ public class HMM2 {
 	public void updateParameters(List<String> observs, Double[][] gamma,
 			Double[][][] epsilon) {
 		for(int i=0;i<numStates;i++)
-			init_state[i]=gamma[1][i];
+			init_state[i]=gamma[0][i];
 		double numerator=Double.NEGATIVE_INFINITY;
+		double denominator=Double.NEGATIVE_INFINITY;
 		for(int i=0;i<numStates;i++)
 		{
 			for (int j = 0; j <numStates; j++) 
@@ -320,8 +321,22 @@ public class HMM2 {
 				for(int t=0;t<observs.size()-1;t++)
 				{
 					numerator=LogUtils.logAdd(numerator, epsilon[t][i][j]);
+					denominator=LogUtils.logAdd(denominator, gamma[t][i]);
 				}
+				tr[i][j]=Math.exp(numerator-denominator);
 			}
+		}
+		
+		System.out.println("Update Done!");
+	}
+	public void printTr()
+	{
+		System.out.println("Printing TR");
+		for (int i = 0; i < tr.length; i++) {
+			for (int j = 0; j < tr[0].length; j++) {
+				System.out.print(tr[i][j]+" ");
+			}
+			System.out.println();
 		}
 	}
 }

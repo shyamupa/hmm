@@ -238,8 +238,10 @@ public class GetParameters {
 		Double[][] fwd,bwd,gamma;
 		Double[][][] epsilon;
 		BufferedReader br = new BufferedReader(new FileReader("data/HW6.train.txt"));
+		int counter=0;
 		while((line=br.readLine())!=null)
 		{
+			System.out.println("Processing sentence: "+counter++);
 			List<String> observs = Arrays.asList(line.split(" "));
 			fwd = hmm.computeForward(observs);
 			bwd = hmm.computeBackward(observs);
@@ -247,6 +249,7 @@ public class GetParameters {
 			epsilon = hmm.computeEpsilon(observs, fwd, bwd);
 			hmm.updateParameters(observs,gamma,epsilon);
 		}
+		hmm.printTr();
 //
 //		BufferedReader br = new BufferedReader(new FileReader("data/HW6.train.txt"));
 //		while((line=br.readLine())!=null)
