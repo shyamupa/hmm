@@ -25,11 +25,11 @@ public class HMM {
 		this.em = em;
 		this.lex=lex;
 	}
-	public List<String> Viterbi(List<String> observs)
+//	public List<String> Viterbi(List<String> observs)
 	{
-		Integer[] obvsId=observToIds(observs);
+//		Integer[] obvsId=observToIds(observs);
 		// stores max probability of being in state s and seeing observation obv
-		HashMap<Integer, HashMap<Integer,Double>> dp = new HashMap<Integer, HashMap<Integer,Double>>();
+//		HashMap<Integer, HashMap<Integer,Double>> dp = new HashMap<Integer, HashMap<Integer,Double>>();
 //		Double[][] dp= new Double[numStates][vocabSize];
 		
 //		HashMap<Integer,HashMap<Integer,Integer>> backPointers= new HashMap<Integer,HashMap<Integer,Integer>>();
