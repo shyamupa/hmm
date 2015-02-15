@@ -4,6 +4,28 @@ import java.util.List;
 
 public class LogUtils {
 
+	public static float logAdd(float logX, float logY) {
+		// 1. make X the max
+	       if (logY > logX) {
+	           float temp = logX;
+	           logX = logY;
+	           logY = temp;
+	       }
+	       // 2. now X is bigger
+	       if (logX == Float.NEGATIVE_INFINITY) {
+	           return logX;
+	       }
+	       // 3. how far "down" (think decibels) is logY from logX?
+	       //    if it's really small (20 orders of magnitude smaller), then ignore
+	       float negDiff = logY - logX;
+	       if (negDiff < -20) {
+	           return logX;
+	       }
+	       // 4. otherwise use some nice algebra to stay in the log domain
+	       //    (except for negDiff)
+	       return (float) (logX + java.lang.Math.log(1.0f + java.lang.Math.exp(negDiff)));
+	}
+	
 	public static double logAdd(double logX, double logY) {
 	       // 1. make X the max
 	       if (logY > logX) {

@@ -129,24 +129,70 @@ public class HMM {
 //		System.out.println(piSum);
 	}
 
-	public Double[][] computeForward(int[] obvsId){
-		Double[][] fwd=new Double[numStates][obvsId.length];
+	public float[][] computeGamma(List<String> observs, float[][] fwd, float[][] bwd){
+		float[][] gamma=new float[observs.size()][numStates];	// reversed ORDER!!
+		float Z;
+		for(int t=0;t<observs.size();t++)
+		{
+			Z=Float.NEGATIVE_INFINITY;
+			for(int i=0;i<numStates;i++)
+			{
+				gamma[t][i]=fwd[i][t]+bwd[i][t];
+				Z=LogUtils.logAdd(Z, gamma[t][i]);
+			}
+			for(int i=0;i<numStates;i++)
+			{
+				gamma[t][i]-=Z;
+			}
+		}
+		return gamma;
+	}
+	public float[][] computeBackward(int[] tokens){
+		float[][] bwd=new float[numStates][tokens.length];
 		for(int i=0;i<numStates;i++)
 		{
-			fwd[i][0]=Math.log(pi[i])+Math.log(emission[i][obvsId[0]]);
-			if(Double.isNaN(fwd[i][0]))
-				System.out.println("VAL "+Math.log(pi[i])+"VAL 2 "+Math.log(emission[i][obvsId[0]]));
+			bwd[i][tokens.length-1]=(float) Math.log(1);
 		}
-		for(int t=1;t<obvsId.length;t++)
+		for(int t=tokens.length-2;t>=0;t--)
 		{
 			for(int s=0;s<numStates;s++)
 			{
-				Double val=Double.NEGATIVE_INFINITY;
+				float val=Float.NEGATIVE_INFINITY;
 				for(int j=0;j<numStates;j++)
 				{
-					val=LogUtils.logAdd(val,fwd[j][t-1]+Math.log(trans[j][s]));
+					val=(float) LogUtils.logAdd(val,bwd[j][t+1]+Math.log(trans[s][j])+Math.log(emission[j][tokens[t+1]]));
 				}
-				val+=emission[s][obvsId[t]];
+				bwd[s][t]=val;
+			}
+		}
+//		System.out.println("Printing Backward");
+//		for(int i=0;i<numStates;i++)
+//		{
+//			for(int j=0;j<observs.size();j++)
+//				System.out.print(bwd[i][j]+" ");
+//			System.out.println();
+//		}
+//		System.out.println("backward pass finished!");
+		return bwd;
+	}
+	public float[][] computeForward(int[] tokens){
+		float[][] fwd=new float[numStates][tokens.length];
+		for(int i=0;i<numStates;i++)
+		{
+			fwd[i][0]=(float) (Math.log(pi[i])+Math.log(emission[i][tokens[0]]));
+			if(Float.isNaN(fwd[i][0]))
+				System.out.println("VAL "+Math.log(pi[i])+"VAL 2 "+Math.log(emission[i][tokens[0]]));
+		}
+		for(int t=1;t<tokens.length;t++)
+		{
+			for(int s=0;s<numStates;s++)
+			{
+				float val=Float.NEGATIVE_INFINITY;
+				for(int j=0;j<numStates;j++)
+				{
+					val=(float) LogUtils.logAdd(val,fwd[j][t-1]+Math.log(trans[j][s]));
+				}
+				val+=emission[s][tokens[t]];
 				fwd[s][t]=val;
 			}
 		}
