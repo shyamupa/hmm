@@ -129,10 +129,10 @@ public class HMM {
 //		System.out.println(piSum);
 	}
 
-	public float[][] computeGamma(List<String> observs, float[][] fwd, float[][] bwd){
-		float[][] gamma=new float[observs.size()][numStates];	// reversed ORDER!!
+	public float[][] computeGamma(int[] tokens, float[][] fwd, float[][] bwd){
+		float[][] gamma=new float[tokens.length][numStates];	// reversed ORDER!!
 		float Z;
-		for(int t=0;t<observs.size();t++)
+		for(int t=0;t<tokens.length;t++)
 		{
 			Z=Float.NEGATIVE_INFINITY;
 			for(int i=0;i<numStates;i++)
@@ -211,11 +211,54 @@ public class HMM {
 		}
 		
 	}
-	
+	public float[][][] computeEpsilon(int[] observs, float[][] fwd, float[][] bwd){
+		float[][][] epsilon=new float[observs.length-1][numStates][numStates];	// reversed ORDER!!
+		float Z;
+		for(int t=0;t<observs.length-1;t++)
+		{
+			Z=Float.NEGATIVE_INFINITY;
+			for(int i=0;i<numStates;i++)
+			{
+				for(int j=0;j<numStates;j++)
+				{
+//					System.out.println(obvsId[t+1]);
+					epsilon[t][i][j]=(float) (fwd[i][t]+bwd[j][t+1]+Math.log(trans[i][j])+Math.log(emission[j][observs[t+1]]));
+					Z=LogUtils.logAdd(Z, epsilon[t][i][j]);
+				}
+			}
+			for(int i=0;i<numStates;i++)
+			{
+				for(int j=0;j<numStates;j++)
+				{
+					epsilon[t][i][j]-=Z;
+				}
+			}
+		}
+//		System.out.println("Printing Epsilon");
+//		for(int t=0;t<observs.size()-1;t++)
+//		{
+//			for(int i=0;i<numStates;i++)
+//			{
+//				for(int j=0;j<numStates;j++)
+//				{
+//					System.out.print(epsilon[t][i][j]+" ");
+//				}
+//			}
+//			System.out.println();
+//		}
+//		System.out.println("Epsilon computed!");
+		return epsilon;
+		
+	}
 	public static void main(String[] args) throws IOException {
 		HMM hmm = new HMM();
 		hmm.preprocess();
 		hmm.prepare();
 		hmm.initEstimates();
+		int[] observs = null;
+		float[][] fwd = hmm.computeForward(observs);
+		float[][] bwd = hmm.computeBackward(observs);
+		float[][] gamma = hmm.computeGamma(observs, fwd, bwd);
+		float[][][] epsilon = hmm.computeEpsilon(observs, fwd, bwd);
 	}
 }
