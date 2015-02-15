@@ -247,7 +247,7 @@ public class HMM {
 		BufferedReader br = new BufferedReader(new FileReader(train));
 		String line;
 		while ((line = br.readLine()) != null) {
-			int[] observs = hmm.lex.mapTokensToID(line.split("\\s"));
+//			int[] observs = hmm.lex.mapTokensToID(line.split("\\s"));
 //			float[][] fwd = hmm.computeForward(observs);
 //			float[][] bwd = hmm.computeBackward(observs);
 //			float[][] gamma = hmm.computeGamma(observs, fwd, bwd);
