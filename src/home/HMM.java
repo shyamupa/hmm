@@ -27,30 +27,19 @@ public class HMM {
 	}
 
 	public void preprocess() throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader("data/HW6.gold.txt"));
-		String[] parts;
-		String pos,word;
-		String line;
-		while((line=br.readLine())!=null)
-		{
-			parts=line.split("\\s+");
-			for (int j = 0; j < parts.length; j++) 
-			{
-				word=parts[j].split("_")[0];
-				pos=parts[j].split("_")[1];
-//				System.out.println(word+" "+pos);
-				lex.add(word);
-				label_lex.add(pos);
-			}
-		}
-		br.close();
+		populateLexicons();
 		numStates=label_lex.vocabSize();
 		vocabSize=lex.vocabSize();
 		System.out.println(label_lex.vocabSize());
 		System.out.println(lex.vocabSize());
-		
+		populateLegalTags();
+	}
+			
+	private void populateLegalTags() throws IOException {
 		legalTags= new HashMap<Integer,List<Integer>>();
-		br = new BufferedReader(new FileReader("data/HW6.lexicon.txt"));
+		BufferedReader br = new BufferedReader(new FileReader("data/HW6.lexicon.txt"));
+		String line;
+		String[] parts;
 		while((line=br.readLine())!=null)
 		{
 			parts=line.split("\\s+");
@@ -68,7 +57,27 @@ public class HMM {
 //		}
 		br.close();
 	}
-			
+
+	private void populateLexicons() throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader("data/HW6.gold.txt"));
+		String[] parts;
+		String pos,word;
+		String line;
+		while((line=br.readLine())!=null)
+		{
+			parts=line.split("\\s+");
+			for (int j = 0; j < parts.length; j++) 
+			{
+				word=parts[j].split("_")[0];
+				pos=parts[j].split("_")[1];
+//				System.out.println(word+" "+pos);
+				lex.add(word);
+				label_lex.add(pos);
+			}
+		}
+		br.close();
+	}
+
 	public void prepare()
 	{
 		trans=new float[numStates][numStates];
