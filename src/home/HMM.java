@@ -86,12 +86,15 @@ public class HMM {
 
 	private void initEstimates() {
 		// emission estimates
+		float epsilon = 0.001f; // some primitive smoothing
 		float Z;
 		for (int i = 0; i < numStates; i++) {
 			Z = legalTags.get(i).size();
 			for (int j = 0; j < vocabSize; j++) {
 				if (legalTags.get(i).contains(j)) {
-					emission[i][j] = 1.0f / Z;
+					emission[i][j] = 1.0f - epsilon / Z;
+				} else {
+					emission[i][j] = epsilon / (numStates - Z);
 				}
 			}
 		}
@@ -104,20 +107,19 @@ public class HMM {
 		for (int i = 0; i < numStates; i++) {
 			pi[i] = 1.0f / numStates;
 		}
-		// float emSum=0.0f,trSum=0.0f,piSum=0.0f;
-		// int row=10;
-		// for(int j=0;j<numStates;j++)
-		// {
-		// trSum+=trans[row][j];
-		// piSum+=pi[j];
-		//
-		// }
+		float emSum = 0.0f, trSum = 0.0f, piSum = 0.0f;
+		int row = 10;
+		for (int j = 0; j < numStates; j++) {
+			trSum += trans[row][j];
+			piSum += pi[j];
+
+		}
 		// for(int j=0;j<vocabSize;j++)
 		// {
 		// emSum+=emission[row][j];
 		// }
 		// System.out.println(emSum);
-		// System.out.println(trSum);
+		System.out.println(trSum);
 		// System.out.println(piSum);
 	}
 
@@ -255,6 +257,7 @@ public class HMM {
 		hmm.preprocess();
 		hmm.prepare();
 		hmm.initEstimates();
+		// System.exit(-1);
 		String train = "data/HW6.train.txt";
 		BufferedReader br = new BufferedReader(new FileReader(train));
 		String line;
@@ -264,12 +267,12 @@ public class HMM {
 			float[][] fwd = hmm.computeForward(observs);
 			checkSanity(fwd);
 			float llh = hmm.computeLLH(observs, fwd);
-			System.out.println(llh);
 			float[][] bwd = hmm.computeBackward(observs);
 			checkSanity(bwd);
-			// float[][] gamma = hmm.computeGamma(observs, fwd, bwd);
-			// checkSanity(gamma);
-			// float[][][] epsilon = hmm.computeEpsilon(observs, fwd, bwd);
+			float[][] gamma = hmm.computeGamma(observs, fwd, bwd);
+			checkSanity(gamma);
+			float[][][] epsilon = hmm.computeEpsilon(observs, fwd, bwd);
+			checkSanity(epsilon);
 			i++;
 			if (i % 1000 == 0) {
 				System.out.println(i);
@@ -294,7 +297,21 @@ public class HMM {
 		for (int i = 2; i < fwd.length; i++) {
 			llh = LogUtils.logAdd(llh, fwd[i][T]);
 		}
+		if (Float.isInfinite(llh))
+			System.out.println("Oh no!");
 		return llh;
+	}
+
+	public static void checkSanity(float[][][] f) {
+		for (int i = 0; i < f.length; i++) {
+			for (int j = 0; j < f[0].length; j++) {
+				for (int k = 0; k < f[0][0].length; k++)
+					if (Float.isNaN(f[i][j][k])) {
+						System.out.println("No!");
+					}
+
+			}
+		}
 	}
 
 	public static void checkSanity(float[][] f) {
@@ -308,86 +325,87 @@ public class HMM {
 			}
 		}
 	}
-	
-	public List<Integer> Viterbi(int[] observs)
-	{
-		
-		Double[][] dp=new Double[numStates][observs.length];
-		// stores max probability of being in state s and seeing observation with id obv
-		int[][] bp= new int[numStates][observs.length];
+
+	public List<Integer> Viterbi(int[] observs) {
+
+		Double[][] dp = new Double[numStates][observs.length];
+		// stores max probability of being in state s and seeing observation
+		// with id obv
+		int[][] bp = new int[numStates][observs.length];
 		// backpointers
-		
-		for(int i=0;i<numStates;i++)
-		{
-			dp[i][0]=-Math.log(pi[i])-Math.log(emission[i][observs[0]]);	// init in i and emitting the first observation
-//			System.out.println(dp[i][0]);
+
+		for (int i = 0; i < numStates; i++) {
+			dp[i][0] = -Math.log(pi[i]) - Math.log(emission[i][observs[0]]); // init
+																				// in
+																				// i
+																				// and
+																				// emitting
+																				// the
+																				// first
+																				// observation
+			// System.out.println(dp[i][0]);
 		}
-		
-		Double val,min;
-		int argmin=-1;
-		
-		for(int t=1;t<observs.length;t++)
-		{
-			for(int i=0;i<numStates;i++)
-			{
-				min=dp[0][t-1]-Math.log(trans[0][i])-Math.log(emission[i][observs[t]]);	
-				argmin=0;		
-				for(int j=1;j<numStates;j++)
-				{
-//					System.out.println(dp[j][t-1]);
-					val= dp[j][t-1]-Math.log(trans[j][i])-Math.log(emission[i][observs[t]]);
-					if(min > val)
-					{
-//						System.out.println("UPDATING");
-						min=val;
-						argmin=j;
+
+		Double val, min;
+		int argmin = -1;
+
+		for (int t = 1; t < observs.length; t++) {
+			for (int i = 0; i < numStates; i++) {
+				min = dp[0][t - 1] - Math.log(trans[0][i])
+						- Math.log(emission[i][observs[t]]);
+				argmin = 0;
+				for (int j = 1; j < numStates; j++) {
+					// System.out.println(dp[j][t-1]);
+					val = dp[j][t - 1] - Math.log(trans[j][i])
+							- Math.log(emission[i][observs[t]]);
+					if (min > val) {
+						// System.out.println("UPDATING");
+						min = val;
+						argmin = j;
 					}
-//					System.out.println("STATE"+j+val+"and"+min);
-//					if(min == Double.POSITIVE_INFINITY)
-//					{
-//						System.out.println("OH NO!!");
-//						System.exit(-1);
-//					}
+					// System.out.println("STATE"+j+val+"and"+min);
+					// if(min == Double.POSITIVE_INFINITY)
+					// {
+					// System.out.println("OH NO!!");
+					// System.exit(-1);
+					// }
 				}
-//				System.out.print("min should not be infinity! "+min+"argmin is "+argmin);
-				dp[i][t]=min;
-				bp[i][t]=argmin;
+				// System.out.print("min should not be infinity! "+min+"argmin is "+argmin);
+				dp[i][t] = min;
+				bp[i][t] = argmin;
 			}
-//			System.out.println();
+			// System.out.println();
 		}
 		// print
 		ArrayList<Integer> ans = new ArrayList<Integer>();
-		int position=-1;
-		for(int t=0;t<observs.length;t++)
-		{
-			min=Double.POSITIVE_INFINITY;
-			for(int i=0;i<numStates;i++)
-			{
-//				System.out.print(dp[i][t]+" ");
-				if(min>dp[i][t])
-				{
-					min=dp[i][t];
-					position=i;
+		int position = -1;
+		for (int t = 0; t < observs.length; t++) {
+			min = Double.POSITIVE_INFINITY;
+			for (int i = 0; i < numStates; i++) {
+				// System.out.print(dp[i][t]+" ");
+				if (min > dp[i][t]) {
+					min = dp[i][t];
+					position = i;
 				}
 			}
-//			System.out.println(min+" at "+position);
+			// System.out.println(min+" at "+position);
 			ans.add(position);
 		}
-//		assert (argmin!=-1) :  "bad end state";
-//		
-//		int[] answerIds= new int[observs.size()];
-//		answerIds[observs.size()-1]=argmin;
-//		int prev;
-//		for(int i=observs.size()-2;i>=0;i--)
-//		{
-//			prev=answerIds[i+1];
-//			answerIds[i]=bp[prev][i+1];
-//		}
-//		for(int i=0;i<answerIds.length;i++)
-//			System.out.println(answerIds[i]);
-//		return null;
-//		System.out.println("Finished!");
+		// assert (argmin!=-1) : "bad end state";
+		//
+		// int[] answerIds= new int[observs.size()];
+		// answerIds[observs.size()-1]=argmin;
+		// int prev;
+		// for(int i=observs.size()-2;i>=0;i--)
+		// {
+		// prev=answerIds[i+1];
+		// answerIds[i]=bp[prev][i+1];
+		// }
+		// for(int i=0;i<answerIds.length;i++)
+		// System.out.println(answerIds[i]);
+		// return null;
+		// System.out.println("Finished!");
 		return ans;
-		
+
 	}
 }
