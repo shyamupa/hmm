@@ -21,6 +21,10 @@ public class HMM {
 	Map<Integer, List<Integer>> legalTags;
 	int vocabSize;
 	int numStates;
+	private float[][] transNum;
+	private float[][] transDenom;
+	private float[][] emissionDenom;
+	private float[][] emissionNum;
 
 	public HMM() {
 		lex = new Lexiconer();
@@ -203,11 +207,42 @@ public class HMM {
 		return fwd;
 	}
 
-	public void estimate(int MAX_ITERS, int PRINT_ITERS) {
+	public void estimate(String train, int MAX_ITERS, int PRINT_ITERS)
+			throws IOException {
 		int iters = 0;
 		while (iters <= MAX_ITERS) {
+			// reset counts
+			transNum = new float[numStates][numStates];
+			transDenom = new float[numStates][numStates];
+			emissionNum = new float[numStates][vocabSize];
+			emissionDenom = new float[numStates][vocabSize];
+
+			BufferedReader br = new BufferedReader(new FileReader(train));
+			String line;
+			int i = 0;
+			while ((line = br.readLine()) != null) {
+				int[] observs = lex.mapTokensToID(line.split("\\s"));
+				float[][] fwd = computeForward(observs);
+				checkSanity(fwd);
+				float llh = computeLLH(observs, fwd);
+				float[][] bwd = computeBackward(observs);
+				checkSanity(bwd);
+				float[][] gamma = computeGamma(observs, fwd, bwd);
+				checkSanity(gamma);
+				float[][][] epsilon = computeEpsilon(observs, fwd, bwd);
+				checkSanity(epsilon);
+				updateTransitionNum(llh, epsilon, gamma);
+				updateTransitionDenom(llh, gamma);
+				updateEmissionNum(llh, gamma);
+				updateEmissionDenom(llh, gamma);
+				i++;
+				if (i % 1000 == 0) {
+					System.out.println(i);
+				}
+			}
+			br.close();
 			if (iters % PRINT_ITERS == 0) {
-				System.out.println();
+				System.out.println("at iter " + iters);
 			}
 		}
 
@@ -259,31 +294,8 @@ public class HMM {
 		hmm.initEstimates();
 		// System.exit(-1);
 		String train = "data/HW6.train.txt";
-		BufferedReader br = new BufferedReader(new FileReader(train));
-		String line;
-		int i = 0;
-		while ((line = br.readLine()) != null) {
-			int[] observs = hmm.lex.mapTokensToID(line.split("\\s"));
-			float[][] fwd = hmm.computeForward(observs);
-			checkSanity(fwd);
-			float llh = hmm.computeLLH(observs, fwd);
-			float[][] bwd = hmm.computeBackward(observs);
-			checkSanity(bwd);
+		hmm.estimate(train, 1, 1);
 
-			float[][] gamma = hmm.computeGamma(observs, fwd, bwd);
-			checkSanity(gamma);
-			float[][][] epsilon = hmm.computeEpsilon(observs, fwd, bwd);
-			checkSanity(epsilon);
-			hmm.updateTransitionNum(llh, epsilon, gamma);
-			hmm.updateTransitionDenom(llh, gamma);
-			hmm.updateEmissionNum(llh, gamma);
-			hmm.updateEmissionDenom(llh, gamma);
-			i++;
-			if (i % 1000 == 0) {
-				System.out.println(i);
-			}
-		}
-		br.close();
 	}
 
 	private void updateEmissionDenom(float llh, float[][] gamma) {
@@ -303,8 +315,11 @@ public class HMM {
 
 	private void updateTransitionNum(float llh, float[][][] epsilon,
 			float[][] gamma) {
-		// TODO Auto-generated method stub
-
+		for(int i=0;i<transNum.length;i++)
+			for(int j=0;j<transNum[0].length;j++)
+			{
+				transNum[i][j]+=0;
+			}
 	}
 
 	/***
