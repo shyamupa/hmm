@@ -145,8 +145,12 @@ public class HMM {
 		}
 		for (int t = tokens.length - 2; t >= 0; t--) {
 			for (int s = 0; s < numStates; s++) {
-				float val = Float.NEGATIVE_INFINITY;
-				for (int j = 0; j < numStates; j++) {
+				float val = (float) LogUtils.logAdd(
+						bwd[0][t + 1] + Math.log(trans[s][0])
+								+ Math.log(emission[0][tokens[t + 1]]),
+						bwd[1][t + 1] + Math.log(trans[s][1])
+								+ Math.log(emission[1][tokens[t + 1]]));
+				for (int j = 2; j < numStates; j++) {
 					val = (float) LogUtils.logAdd(
 							val,
 							bwd[j][t + 1] + Math.log(trans[s][j])
@@ -166,19 +170,27 @@ public class HMM {
 		return bwd;
 	}
 
+	/**
+	 * computes log fwd[state][position]
+	 * 
+	 * @param tokens
+	 * @return
+	 */
 	public float[][] computeForward(int[] tokens) {
 		float[][] fwd = new float[numStates][tokens.length];
+		// base case
+		// fwd[i][0] = pi[i]*em[i][O_0]
 		for (int i = 0; i < numStates; i++) {
 			fwd[i][0] = (float) (Math.log(pi[i]) + Math
 					.log(emission[i][tokens[0]]));
-			if (Float.isNaN(fwd[i][0]))
-				System.out.println("VAL " + Math.log(pi[i]) + "VAL 2 "
-						+ Math.log(emission[i][tokens[0]]));
+
 		}
 		for (int t = 1; t < tokens.length; t++) {
 			for (int s = 0; s < numStates; s++) {
-				float val = Float.NEGATIVE_INFINITY;
-				for (int j = 0; j < numStates; j++) {
+				float val = (float) LogUtils.logAdd(
+						fwd[0][t - 1] + Math.log(trans[0][s]), fwd[1][t - 1]
+								+ Math.log(trans[1][s]));
+				for (int j = 2; j < numStates; j++) {
 					val = (float) LogUtils.logAdd(val,
 							fwd[j][t - 1] + Math.log(trans[j][s]));
 				}
@@ -246,13 +258,136 @@ public class HMM {
 		String train = "data/HW6.train.txt";
 		BufferedReader br = new BufferedReader(new FileReader(train));
 		String line;
+		int i = 0;
 		while ((line = br.readLine()) != null) {
-//			int[] observs = hmm.lex.mapTokensToID(line.split("\\s"));
-//			float[][] fwd = hmm.computeForward(observs);
-//			float[][] bwd = hmm.computeBackward(observs);
-//			float[][] gamma = hmm.computeGamma(observs, fwd, bwd);
-//			float[][][] epsilon = hmm.computeEpsilon(observs, fwd, bwd);
+			int[] observs = hmm.lex.mapTokensToID(line.split("\\s"));
+			float[][] fwd = hmm.computeForward(observs);
+			checkSanity(fwd);
+			float llh = hmm.computeLLH(observs, fwd);
+			System.out.println(llh);
+			float[][] bwd = hmm.computeBackward(observs);
+			checkSanity(bwd);
+			// float[][] gamma = hmm.computeGamma(observs, fwd, bwd);
+			// checkSanity(gamma);
+			// float[][][] epsilon = hmm.computeEpsilon(observs, fwd, bwd);
+			i++;
+			if (i % 1000 == 0) {
+				System.out.println(i);
+			}
 		}
 		br.close();
+	}
+
+	/***
+	 * computes LLH using log P(O)= log \sum_i fwd[i][T]
+	 * 
+	 * @param observs
+	 * @param fwd
+	 * @return
+	 */
+	private float computeLLH(int[] observs, float[][] fwd) {
+		float llh = 0.0f;
+		int T = observs.length - 1;
+		// System.out.println(fwd.length);
+		// System.out.println(fwd[0].length);
+		llh = LogUtils.logAdd(fwd[0][T], fwd[1][T]);
+		for (int i = 2; i < fwd.length; i++) {
+			llh = LogUtils.logAdd(llh, fwd[i][T]);
+		}
+		return llh;
+	}
+
+	public static void checkSanity(float[][] f) {
+		for (int i = 0; i < f.length; i++) {
+			for (int j = 0; j < f[0].length; j++) {
+				// System.out.println(f[i][j]);
+				if (Float.isNaN(f[i][j])) {
+					System.out.println("No!");
+				}
+
+			}
+		}
+	}
+	
+	public List<Integer> Viterbi(int[] observs)
+	{
+		
+		Double[][] dp=new Double[numStates][observs.length];
+		// stores max probability of being in state s and seeing observation with id obv
+		int[][] bp= new int[numStates][observs.length];
+		// backpointers
+		
+		for(int i=0;i<numStates;i++)
+		{
+			dp[i][0]=-Math.log(pi[i])-Math.log(emission[i][observs[0]]);	// init in i and emitting the first observation
+//			System.out.println(dp[i][0]);
+		}
+		
+		Double val,min;
+		int argmin=-1;
+		
+		for(int t=1;t<observs.length;t++)
+		{
+			for(int i=0;i<numStates;i++)
+			{
+				min=dp[0][t-1]-Math.log(trans[0][i])-Math.log(emission[i][observs[t]]);	
+				argmin=0;		
+				for(int j=1;j<numStates;j++)
+				{
+//					System.out.println(dp[j][t-1]);
+					val= dp[j][t-1]-Math.log(trans[j][i])-Math.log(emission[i][observs[t]]);
+					if(min > val)
+					{
+//						System.out.println("UPDATING");
+						min=val;
+						argmin=j;
+					}
+//					System.out.println("STATE"+j+val+"and"+min);
+//					if(min == Double.POSITIVE_INFINITY)
+//					{
+//						System.out.println("OH NO!!");
+//						System.exit(-1);
+//					}
+				}
+//				System.out.print("min should not be infinity! "+min+"argmin is "+argmin);
+				dp[i][t]=min;
+				bp[i][t]=argmin;
+			}
+//			System.out.println();
+		}
+		// print
+		ArrayList<Integer> ans = new ArrayList<Integer>();
+		int position=-1;
+		for(int t=0;t<observs.length;t++)
+		{
+			min=Double.POSITIVE_INFINITY;
+			for(int i=0;i<numStates;i++)
+			{
+//				System.out.print(dp[i][t]+" ");
+				if(min>dp[i][t])
+				{
+					min=dp[i][t];
+					position=i;
+				}
+			}
+//			System.out.println(min+" at "+position);
+			ans.add(position);
+		}
+//		assert (argmin!=-1) :  "bad end state";
+//		
+//		int[] answerIds= new int[observs.size()];
+//		answerIds[observs.size()-1]=argmin;
+//		int prev;
+//		for(int i=observs.size()-2;i>=0;i--)
+//		{
+//			prev=answerIds[i+1];
+//			answerIds[i]=bp[prev][i+1];
+//		}
+//		for(int i=0;i<answerIds.length;i++)
+//			System.out.println(answerIds[i]);
+//		return null;
+//		System.out.println("Finished!");
+		return ans;
+		
 	}
 }
