@@ -269,17 +269,42 @@ public class HMM {
 			float llh = hmm.computeLLH(observs, fwd);
 			float[][] bwd = hmm.computeBackward(observs);
 			checkSanity(bwd);
-			
-//			float[][] gamma = hmm.computeGamma(observs, fwd, bwd);
-//			checkSanity(gamma);
-//			float[][][] epsilon = hmm.computeEpsilon(observs, fwd, bwd);
-//			checkSanity(epsilon);
+
+			float[][] gamma = hmm.computeGamma(observs, fwd, bwd);
+			checkSanity(gamma);
+			float[][][] epsilon = hmm.computeEpsilon(observs, fwd, bwd);
+			checkSanity(epsilon);
+			hmm.updateTransitionNum(llh, epsilon, gamma);
+			hmm.updateTransitionDenom(llh, gamma);
+			hmm.updateEmissionNum(llh, gamma);
+			hmm.updateEmissionDenom(llh, gamma);
 			i++;
 			if (i % 1000 == 0) {
 				System.out.println(i);
 			}
 		}
 		br.close();
+	}
+
+	private void updateEmissionDenom(float llh, float[][] gamma) {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void updateEmissionNum(float llh, float[][] gamma) {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void updateTransitionDenom(float llh, float[][] gamma) {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void updateTransitionNum(float llh, float[][][] epsilon,
+			float[][] gamma) {
+		// TODO Auto-generated method stub
+
 	}
 
 	/***
