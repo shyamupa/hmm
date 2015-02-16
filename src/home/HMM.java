@@ -269,10 +269,11 @@ public class HMM {
 			float llh = hmm.computeLLH(observs, fwd);
 			float[][] bwd = hmm.computeBackward(observs);
 			checkSanity(bwd);
-			float[][] gamma = hmm.computeGamma(observs, fwd, bwd);
-			checkSanity(gamma);
-			float[][][] epsilon = hmm.computeEpsilon(observs, fwd, bwd);
-			checkSanity(epsilon);
+			
+//			float[][] gamma = hmm.computeGamma(observs, fwd, bwd);
+//			checkSanity(gamma);
+//			float[][][] epsilon = hmm.computeEpsilon(observs, fwd, bwd);
+//			checkSanity(epsilon);
 			i++;
 			if (i % 1000 == 0) {
 				System.out.println(i);
